@@ -3258,8 +3258,8 @@ textarea {
     --phone-height: 100dvh;
     --phone-gutter: calc(var(--phone-width) * 16 / 375);
     --phone-card-width: calc(var(--phone-width) * 343 / 375);
-    --phone-card-height: calc(var(--phone-height) * 495 / 812);
-    --phone-card-top: calc(var(--safe-top) + (var(--phone-height) * 108 / 812));
+    --phone-card-height: calc(var(--phone-height) * 519 / 812);
+    --phone-card-top: calc(var(--safe-top) + (var(--phone-height) * 84 / 812));
     --phone-templates-top: calc(var(--safe-top) + (var(--phone-height) * 639 / 812));
   }
 
