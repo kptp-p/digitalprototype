@@ -848,8 +848,18 @@ function syncFlipCameraState() {
   flipCamera.disabled = !canFlip;
 }
 
+function isIOSDevice() {
+  const ua = navigator.userAgent || "";
+  return /iPhone|iPad|iPod/.test(ua)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function isMobileCameraDevice() {
-  return window.matchMedia?.("(pointer: coarse)").matches || false;
+  const ua = navigator.userAgent || "";
+  return window.matchMedia?.("(pointer: coarse)").matches
+    || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+    || isIOSDevice()
+    || false;
 }
 
 function ensureCameraAvailable() {
@@ -1234,6 +1244,11 @@ function handlePhotoFileSelection(file) {
   });
   hasDraftPhoto = true;
   draftPhotoSource = source;
+  if (source === "camera") {
+    showPhotoAssetFlow("camera");
+    resetDraftPhotoAsset();
+    return;
+  }
   openPhotoGalleryEditor();
 }
 
