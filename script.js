@@ -303,10 +303,18 @@ function isIPhoneSafari() {
 
 function syncPlaybackVideoOrientation(video, meta = {}) {
   if (!video) return;
-  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
+  const captureWidth = Number(meta.captureWidth) || 0;
+  const captureHeight = Number(meta.captureHeight) || 0;
+  const recordedWidth = Number(video.videoWidth) || 0;
+  const recordedHeight = Number(video.videoHeight) || 0;
+  const shouldCorrectRotation =
+    isIPhoneSafari()
+    && captureHeight > captureWidth
+    && recordedWidth > recordedHeight;
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
   if (shouldCorrectRotation) {
-    video.style.setProperty("transform", "rotate(90deg) scale(1.78)", "important");
+    const scale = recordedHeight ? (recordedWidth / recordedHeight) : 1;
+    video.style.setProperty("transform", `rotate(-90deg) scale(${scale})`, "important");
     video.style.setProperty("transform-origin", "center center", "important");
   } else {
     video.style.removeProperty("transform");
@@ -334,6 +342,11 @@ function setVideoElementSource(video, url, muted = false) {
     video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
+    requestAnimationFrame(() => {
+      if (video.readyState >= 1) {
+        syncPlaybackVideoOrientation(video, meta);
+      }
+    });
     return;
   }
   video._orientationSyncHandler = null;
@@ -1519,10 +1532,7 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
-        needsIosRotationFix:
-          isIPhoneSafari()
-          && Number(activeVideoCaptureSettings.height) > Number(activeVideoCaptureSettings.width)
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
