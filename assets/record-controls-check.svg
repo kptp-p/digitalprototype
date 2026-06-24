@@ -1,0 +1,13 @@
+<svg width="375" height="71" viewBox="0 0 375 71" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0 -716)">
+    <rect x="16.5" y="733.5" width="35" height="35" rx="17.5" stroke="white"/>
+    <path d="M42.3332 751C42.3332 755.6 38.5998 759.333 33.9998 759.333C29.3998 759.333 26.5915 754.7 26.5915 754.7M26.5915 758.867V754.7H30.3582M25.6665 751C25.6665 746.4 29.3665 742.667 33.9998 742.667C39.5582 742.667 42.3332 747.3 42.3332 747.3M38.6332 747.3H42.3332V743.133" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="187.5" cy="751" r="35" fill="white"/>
+    <circle cx="187.5" cy="751" r="29" fill="#FF7864"/>
+    <path d="M180 751L185.5 757L196 745" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="323.5" y="733.5" width="35" height="35" rx="17.5" stroke="white"/>
+    <path d="M347.104 748.891C347.104 748.891 346.652 754.503 346.389 756.867C346.264 757.996 345.567 758.658 344.424 758.679C342.25 758.718 340.073 758.721 337.9 758.675C336.801 758.652 336.115 757.982 335.992 756.873C335.728 754.488 335.278 748.891 335.278 748.891" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M348.257 746.2H334.125" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M345.533 746.2C344.879 746.2 344.316 745.737 344.188 745.097L343.985 744.083C343.86 743.616 343.437 743.292 342.954 743.292H339.427C338.944 743.292 338.521 743.616 338.396 744.083L338.193 745.097C338.065 745.737 337.502 746.2 336.848 746.2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

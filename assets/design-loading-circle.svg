@@ -1,0 +1,22 @@
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mock" x1="0" y1="0" x2="280" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8F8174"/>
+      <stop offset=".52" stop-color="#5F5D57"/>
+      <stop offset="1" stop-color="#8D7B6F"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect width="280" height="280" rx="140" fill="url(#mock)"/>
+    <rect width="280" height="280" rx="140" fill="#111111" fill-opacity="0.3"/>
+  </g>
+  <circle cx="128.5" cy="140.5" r="4" fill="white"/>
+  <circle opacity="0.4" cx="140.5" cy="140.5" r="4" fill="white"/>
+  <circle opacity="0.2" cx="152.5" cy="140.5" r="4" fill="white"/>
+  <rect x="3.5" y="3.5" width="273" height="273" rx="136.5" stroke="white" stroke-width="7"/>
+  <defs>
+    <clipPath id="clip">
+      <rect width="280" height="280" rx="140"/>
+    </clipPath>
+  </defs>
+</svg>

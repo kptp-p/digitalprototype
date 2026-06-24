@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flowwow Basket Prototype</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="phone" aria-label="Flowwow cart prototype">
+      <div class="screen" id="cartScreen">
+        <header class="top">
+          <div class="nav">
+            <button class="icon-button" aria-label="Назад">
+              <span class="chevron-left"></span>
+            </button>
+            <h1>Веселый цветочник</h1>
+          </div>
+        </header>
+
+        <section class="cart-card">
+          <div class="cart-items" id="cartItems"></div>
+          <button class="wide-action" type="button">
+            <svg class="comment-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M7.5 19.5c1.25-.42 2.07-.82 2.77-1.5H16a5 5 0 0 0 5-5V8a5 5 0 0 0-5-5H8A5 5 0 0 0 3 8v5a5 5 0 0 0 4.5 4.97v1.53Z" />
+              <path d="M8 9h8M8 13h5.5" />
+            </svg>
+            Комментарий для продавца
+            <span class="chevron-right"></span>
+          </button>
+        </section>
+
+        <section class="section">
+          <h2>Люди добавляют к заказу</h2>
+          <div class="addons" id="addons"></div>
+          <button class="ecard-banner" type="button" id="openEcard">
+            <span>
+              <strong>Электронная открытка</strong>
+              <small>Ваше фото, видео или готовый дизайн - бесплатно!</small>
+              <em>Попробовать</em>
+            </span>
+            <span class="banner-art" aria-hidden="true"></span>
+          </button>
+        </section>
+
+        <section class="section summary">
+          <button class="wide-action" type="button">
+            <svg class="comment-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M7.5 19.5c1.25-.42 2.07-.82 2.77-1.5H16a5 5 0 0 0 5-5V8a5 5 0 0 0-5-5H8A5 5 0 0 0 3 8v5a5 5 0 0 0 4.5 4.97v1.53Z" />
+              <path d="M8 9h8M8 13h5.5" />
+            </svg>
+            Промокоды и бонусы
+            <span class="chevron-right"></span>
+          </button>
+          <dl>
+            <div><dt>Стоимость товаров</dt><dd id="goodsTotal">10 300 ₽</dd></div>
+            <div><dt>Скидка по промокоду</dt><dd>- 900 ₽</dd></div>
+            <div><dt>Сборы <span class="info">i</span></dt><dd>200 ₽</dd></div>
+            <div><dt>Доставка</dt><dd>500 ₽</dd></div>
+          </dl>
+        </section>
+
+        <div class="checkout-bar">
+          <div class="bonus">Вы получите <span>★</span> 270 бонусов</div>
+          <button class="checkout" type="button">
+            <strong>Продолжить</strong>
+            <span id="checkoutTotal">10 250 ₽</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="screen editor-screen" id="editorScreen" hidden>
+        <header class="top editor-top">
+          <div class="nav">
+            <button class="icon-button" type="button" id="backToCart" aria-label="Назад">
+              <span class="chevron-left"></span>
+            </button>
+            <h1>ЛасФлоре</h1>
+          </div>
+        </header>
+        <div class="editor-bonus">Вы получите <span>★</span> 270 бонусов</div>
+        <section class="postcard-editor">
+          <button class="close-floating" type="button" id="closeEditor" aria-label="Закрыть">×</button>
+          <div class="postcard-preview">
+            <div class="flowwow-logo">FLOWWOW</div>
+          </div>
+          <div class="editor-form">
+            <h2>Открытка от Flowwow</h2>
+            <label class="textarea-wrap">
+              <textarea id="cardText" placeholder="Написать текст открытки"></textarea>
+              <span class="char-counter"><b id="charCount">0</b>/400</span>
+              <button class="clear-text" type="button" id="clearText">Очистить</button>
+            </label>
+          </div>
+          <div class="editor-actions">
+            <div class="qty" data-counter="card">
+              <button type="button" data-delta="-1" aria-label="Уменьшить">
+                <svg class="qty-icon qty-icon-minus" viewBox="92 194 12 2" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M103.143 195.929H92.8571C92.3857 195.929 92 195.495 92 194.964C92 194.434 92.3857 194 92.8571 194H103.143C103.614 194 104 194.434 104 194.964C104 195.495 103.614 195.929 103.143 195.929Z" />
+                </svg>
+              </button><span>1</span><button type="button" data-delta="1" aria-label="Увеличить">
+                <svg class="qty-icon qty-icon-plus" viewBox="148 189 12 12" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M159.143 195.857H154.857V200.143C154.857 200.614 154.471 201 154 201C153.529 201 153.143 200.614 153.143 200.143V195.857H148.857C148.386 195.857 148 195.471 148 195C148 194.529 148.386 194.143 148.857 194.143H153.143V189.857C153.143 189.386 153.529 189 154 189C154.471 189 154.857 189.386 154.857 189.857V194.143H159.143C159.614 194.143 160 194.529 160 195C160 195.471 159.614 195.857 159.143 195.857Z" />
+                </svg>
+              </button>
+            </div>
+            <button class="add-cart" type="button" id="saveText">
+              <span>В корзину</span><strong>0 ₽</strong>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div class="screen design-screen" id="designScreen" hidden>
+        <header class="design-header">
+          <div class="design-nav">
+            <h1>Создание дизайна</h1>
+            <button class="design-close" type="button" id="closeDesign" aria-label="Закрыть">
+              <svg viewBox="341 68 12 12" aria-hidden="true">
+                <path d="M352.25 68.75L341.75 79.25" />
+                <path d="M352.25 79.25L341.75 68.75" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="design-card" aria-label="Дизайн электронной открытки">
+          <div class="design-logo">
+            <svg class="design-logo-svg" viewBox="144 128 87 16" aria-hidden="true">
+              <path d="M156.277 137.21C153.979 137.21 152.103 139.258 151.048 142.065V140.615C151.048 138.153 150.087 137.21 147.648 137.21H144.67C145.139 140.822 147.648 143.468 151.118 143.468C154.377 143.468 157.238 140.73 157.238 138.153C157.238 137.486 156.956 137.21 156.277 137.21ZM156.23 131.251C156.23 129.916 155.925 128.858 155.339 128.858C154.753 128.858 153.932 129.824 153.229 131.182C152.665 129.571 151.985 128.536 151.282 128.536C150.579 128.536 149.664 129.571 148.82 131.182C148.141 129.732 147.343 128.996 146.827 128.996C146.382 128.996 146.124 129.456 145.937 130.169C145.749 130.882 145.679 131.78 145.679 132.539C145.679 135.162 148.398 136.612 151.118 136.612C153.463 136.612 155.011 135.876 155.667 134.679C156.183 133.759 156.23 132.654 156.23 131.251Z" />
+              <path d="M168.716 131.353V130.576H165.676V131.651C162.875 131.958 160.544 133.776 160.544 136.372C160.544 138.765 162.774 140.483 165.676 140.685V141.424H168.716V140.483C171.585 140.147 173.915 138.324 173.915 135.632C173.915 133.272 171.685 131.655 168.716 131.353ZM165.676 138.497C164.395 138.429 163.479 137.384 163.479 135.8C163.479 134.318 164.424 133.071 165.676 132.802V138.497ZM168.716 139.135V133.407C170.098 133.709 170.98 134.688 170.98 136.103C170.98 137.791 169.934 138.866 168.716 139.135Z" />
+              <path d="M227.972 131.015C228.212 131.787 228.144 132.703 227.603 133.879L226.826 135.601L224.864 131.019H221.387L225.368 138.771L224.054 141.098H226.452L230.673 131.019H227.972V131.015Z" />
+              <path d="M187.892 131.015C188.228 131.955 188.06 132.938 187.455 134.488L184.923 141.094H186.985L187.728 138.767H190.903L191.646 141.094H195.09L191.067 131.015H187.892ZM188.266 137.184L189.244 134.152L190.29 137.184H188.262H188.266Z" />
+              <path d="M210.515 135.437C211.661 134.895 212.132 134.152 212.132 133.274C212.132 132.098 210.952 131.015 208.554 131.015H203.627V141.094H208.554C210.985 141.094 212.573 139.51 212.573 137.961C212.573 136.713 211.796 135.903 210.511 135.433L210.515 135.437ZM206.567 132.669H207.378C208.726 132.669 209.272 133.274 209.272 133.95C209.272 134.387 209.07 134.756 208.73 135.126H206.567V132.665V132.669ZM207.844 139.38H207.848L206.567 139.376V136.546H207.781C209.062 136.546 209.671 137.217 209.671 137.961C209.671 138.704 208.894 139.376 207.844 139.376V139.38Z" />
+              <path d="M176.717 131.015L176.381 137.352C176.347 138.158 175.877 138.393 175.033 138.158L174.29 137.957V141.089C174.529 141.123 174.764 141.157 174.966 141.157C177.061 141.157 178.275 139.914 178.443 137.654L178.779 132.804H181.009V141.094H184.045V131.015H176.721H176.717Z" />
+              <path d="M199.853 133.877L199.076 135.599L197.114 131.018H193.637L197.618 138.77L196.304 141.097H198.702L202.923 131.018H200.222C200.462 131.79 200.39 132.706 199.853 133.882V133.877Z" />
+              <path d="M218.822 131.015H215.647C215.983 131.955 215.815 132.938 215.211 134.488L212.678 141.094H214.74L215.484 138.767H218.658L219.402 141.094H222.845L218.826 131.015H218.822ZM216.017 137.184L216.995 134.152L218.041 137.184H216.013H216.017Z" />
+            </svg>
+          </div>
+          <button class="design-style-preview" type="button" id="designStylePreview" hidden aria-label="Готовый стиль">
+            <img class="design-style-preview-logo" src="assets/photo-profile-logo.svg" alt="" aria-hidden="true" />
+            <span class="design-style-preview-text">
+              <svg viewBox="50 521 16 16" aria-hidden="true">
+                <path d="M59.4561 536.036H65.4999" />
+                <path d="M58.65 522.162C59.2964 521.39 60.4583 521.277 61.2469 521.91C61.2905 521.944 62.6912 523.032 62.6912 523.032C63.5575 523.556 63.8266 524.669 63.2912 525.519C63.2627 525.564 55.3433 535.47 55.3433 535.47C55.0798 535.799 54.6799 535.993 54.2524 535.998L51.2196 536.036L50.5363 533.144C50.4406 532.737 50.5363 532.31 50.7998 531.981L58.65 522.162Z" />
+                <path d="M57.1836 524.001L61.7271 527.49" />
+              </svg>
+              <span>Текст</span>
+            </span>
+          </button>
+          <button class="media-circle" type="button" id="openRecorder" aria-label="Записать видеокружок">
+            <img class="design-loading-circle" src="assets/design-loading-circle.svg" alt="" aria-hidden="true" />
+            <svg class="design-progress" viewBox="0 0 292 292" aria-hidden="true">
+              <circle cx="146" cy="146" r="138" />
+            </svg>
+            <video class="media-circle-video" id="designVideoPreview" playsinline preload="metadata"></video>
+            <svg class="camera-mark" viewBox="170 302 35 34" aria-hidden="true">
+              <path d="M195.31 302.333C200.77 302.333 204.167 306.187 204.167 311.642V326.358C204.167 331.813 200.77 335.667 195.31 335.667H179.69C174.23 335.667 170.833 331.813 170.833 326.358V311.642C170.833 306.187 174.246 302.333 179.69 302.333H195.31ZM187.501 312.334C183.819 312.334 180.834 315.318 180.834 319C180.834 322.682 183.818 325.667 187.501 325.667C191.183 325.667 194.167 322.682 194.167 319C194.167 315.318 191.183 312.334 187.501 312.334ZM197 307C195.895 307 195 307.895 195 309C195 310.105 195.895 311 197 311C198.105 311 199 310.105 199 309C199 307.895 198.105 307 197 307Z" />
+            </svg>
+            <img class="photo-circle-mark" src="assets/photo-add-icon.svg" alt="" aria-hidden="true" />
+            <span class="media-label">Записать видеокружок</span>
+            <span class="design-play" id="designPlay" hidden aria-hidden="true">
+              <svg viewBox="170 327 34 38">
+                <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
+              </svg>
+            </span>
+          </button>
+          <div class="design-tools" id="designTools" hidden>
+            <button class="design-text-tool" type="button" id="openDesignText">
+              <svg viewBox="50 521 16 16" aria-hidden="true">
+                <path d="M59.4561 536.036H65.4999" />
+                <path d="M58.65 522.162C59.2964 521.39 60.4583 521.277 61.2469 521.91C61.2905 521.944 62.6912 523.032 62.6912 523.032C63.5575 523.556 63.8266 524.669 63.2912 525.519C63.2627 525.564 55.3433 535.47 55.3433 535.47C55.0798 535.799 54.6799 535.993 54.2524 535.998L51.2196 536.036L50.5363 533.144C50.4406 532.737 50.5363 532.31 50.7998 531.981L58.65 522.162Z" />
+                <path d="M57.1836 524.001L61.7271 527.49" />
+              </svg>
+              <span>Текст</span>
+            </button>
+            <div class="design-palette" aria-label="Цвет фона">
+              <button class="design-swatch" type="button" data-color="#FFF0E6" aria-label="Персиковый фон" style="--swatch:#FFF0E6"></button>
+              <button class="design-swatch" type="button" data-color="#E1F0FF" aria-label="Голубой фон" style="--swatch:#E1F0FF"></button>
+              <button class="design-swatch" type="button" data-color="#F9B430" aria-label="Желтый фон" style="--swatch:#F9B430"></button>
+              <button class="design-swatch is-selected" type="button" data-color="#FFD2CC" aria-label="Розовый фон" style="--swatch:#FFD2CC"></button>
+            </div>
+          </div>
+          <div class="ecard-text-card" aria-label="Текст открытки">
+            <textarea class="ecard-message" id="ecardMessage" placeholder="Добавьте текст открытки"></textarea>
+            <input class="ecard-signature" id="ecardSignature" type="text" placeholder="Добавьте подпись" />
+            <button class="ecard-flip-back" type="button" id="flipDesignBack">
+              <svg viewBox="124 512 18 18" aria-hidden="true">
+                <path d="M130.592 515.233C131.317 515.017 132.117 514.875 133 514.875C136.992 514.875 140.225 518.108 140.225 522.1C140.225 526.092 136.992 529.325 133 529.325C129.009 529.325 125.775 526.092 125.775 522.1C125.775 520.617 126.225 519.233 126.992 518.083" />
+                <path d="M129.559 515.433L131.967 512.667" />
+                <path d="M129.559 515.433L132.367 517.483" />
+              </svg>
+              <span>Перевернуть</span>
+            </button>
+          </div>
+        </section>
+
+        <div class="design-templates" aria-label="Шаблоны дизайна">
+          <button class="design-templates-hold design-templates-hold-left" type="button" id="holdTemplatesLeft" aria-label="Прокрутить шаблоны влево"></button>
+          <div class="design-templates-viewport" id="designTemplatesViewport">
+            <div class="design-templates-track">
+              <button class="template-card template-abstract" type="button" aria-label="Абстрактный дизайн"></button>
+              <button class="template-card template-gift" type="button" data-style-id="gift" aria-label="Готовый стиль gift"></button>
+              <button class="template-card template-video is-selected" type="button" id="openRecorderTemplate" aria-label="Видеосообщение">
+                <video class="template-video-preview" id="templateVideoPreview" playsinline preload="metadata" muted></video>
+                <span class="template-remove" id="templateRemove" hidden aria-hidden="true">
+                  <img class="template-remove-img" src="assets/template-loading-remove.svg" alt="" />
+                  <img class="template-retry-img" src="assets/template-retry.svg" alt="" />
+                </span>
+                <svg class="video-mark" viewBox="174 656 27 20" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M193.229 670.718C193.337 673.16 191.365 675.226 188.826 675.33C188.639 675.338 179.52 675.319 179.52 675.319C176.993 675.511 174.781 673.695 174.582 671.262C174.567 671.08 174.571 661.296 174.571 661.296C174.459 658.851 176.428 656.78 178.969 656.672C179.158 656.663 188.265 656.68 188.265 656.68C190.804 656.491 193.023 658.32 193.219 660.765C193.233 660.941 193.229 670.718 193.229 670.718Z" />
+                  <path d="M193.233 663.306L197.624 659.713C198.712 658.822 200.344 659.598 200.342 661.002L200.326 670.801C200.325 672.205 198.692 672.974 197.606 672.083L193.233 668.49" />
+                </svg>
+              </button>
+              <button class="template-card template-video-action" type="button" id="recordNewTemplate" aria-label="Записать видеокружок" hidden>
+                <svg class="video-mark" viewBox="262 656 25 18" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M279.871 669.423C279.972 671.713 278.124 673.65 275.743 673.747C275.568 673.754 267.019 673.737 267.019 673.737C264.65 673.917 262.576 672.214 262.39 669.933C262.375 669.763 262.379 660.59 262.379 660.59C262.274 658.298 264.12 656.356 266.502 656.255C266.68 656.247 275.217 656.263 275.217 656.263C277.598 656.085 279.678 657.8 279.862 660.093C279.875 660.258 279.871 669.423 279.871 669.423Z" />
+                  <path d="M279.875 662.475L283.991 659.106C285.011 658.271 286.541 658.999 286.54 660.315L286.525 669.501C286.524 670.817 284.992 671.539 283.975 670.704L279.875 667.335" />
+                </svg>
+              </button>
+              <button class="template-card template-photo" type="button" id="openPhotoTemplate" aria-label="Фото">
+                <svg class="photo-mark" viewBox="257 654 25 24" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M273.553 655.402C274.9 655.938 275.312 657.804 275.863 658.404C276.413 659.004 277.201 659.208 277.637 659.208C279.955 659.208 281.833 661.087 281.833 663.403V671.13C281.833 674.236 279.313 676.756 276.207 676.756H262.793C259.685 676.756 257.167 674.236 257.167 671.13V663.403C257.167 661.087 259.045 659.208 261.363 659.208C261.797 659.208 262.585 659.004 263.137 658.404C263.688 657.804 264.099 655.938 265.445 655.402C266.793 654.866 272.207 654.866 273.553 655.402Z" />
+                  <path d="M276.827 662.667H276.839" />
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M273.738 667.504C273.738 665.162 271.841 663.265 269.499 663.265C267.158 663.265 265.261 665.162 265.261 667.504C265.261 669.845 267.158 671.742 269.499 671.742C271.841 671.742 273.738 669.845 273.738 667.504Z" />
+                </svg>
+              </button>
+              <button class="template-card template-next" type="button" data-style-id="next" aria-label="Готовый стиль next"></button>
+            </div>
+          </div>
+          <button class="design-templates-hold design-templates-hold-right" type="button" id="holdTemplatesRight" aria-label="Прокрутить шаблоны вправо"></button>
+        </div>
+
+        <button class="design-preview-button" type="button" id="designPreviewButton" disabled>Предпросмотр</button>
+
+        <div class="design-exit" id="designExit" hidden aria-modal="true" role="dialog">
+          <div class="exit-dialog">
+            <button class="exit-close" type="button" id="stayDesign" aria-label="Закрыть">
+              <span></span>
+            </button>
+            <h2>Хотите выйти?</h2>
+            <p>Чтобы сохранить открытку, добавьте ее к заказу. Вы сможете вернуться и отредактировать открытку, пока курьер не вышел на доставку</p>
+            <button class="exit-primary" type="button" id="stayDesignButton">Добавить открытку сейчас</button>
+            <button class="exit-secondary" type="button" id="exitDesign">Выйти без сохранения</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen record-screen" id="recordScreen" hidden>
+        <div class="record-top">
+          <div class="record-spacer"></div>
+          <div class="record-timer" id="recordTimer">1:00</div>
+          <button class="record-close" type="button" id="closeRecorder" aria-label="Закрыть">
+            <svg viewBox="341 68 12 12" aria-hidden="true">
+              <path d="M352.25 68.75L341.75 79.25" />
+              <path d="M352.25 79.25L341.75 68.75" />
+            </svg>
+          </button>
+        </div>
+        <div class="record-strip" aria-hidden="true">
+          <span class="strip-card strip-abstract"></span>
+          <span class="strip-card strip-gift"></span>
+          <span class="strip-card strip-video"></span>
+          <span class="strip-card strip-photo"></span>
+        </div>
+        <div class="record-circle">
+          <svg class="record-progress" viewBox="0 0 292 292" aria-hidden="true">
+            <circle cx="146" cy="146" r="138" />
+          </svg>
+          <video class="record-preview-video" id="recordPreviewVideo" playsinline preload="metadata" muted></video>
+          <button class="record-play" type="button" id="recordPlay" aria-label="Предпросмотр" hidden>
+            <svg viewBox="170 327 34 38" aria-hidden="true">
+              <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
+            </svg>
+          </button>
+        </div>
+        <p class="record-error" id="recordError" hidden></p>
+        <div class="record-actions">
+          <img class="record-controls-img controls-idle" src="assets/record-controls-idle.svg" alt="" aria-hidden="true" />
+          <img class="record-controls-img controls-stop" src="assets/record-controls-stop.svg" alt="" aria-hidden="true" />
+          <img class="record-controls-img controls-check" src="assets/record-controls-check.svg" alt="" aria-hidden="true" />
+          <button class="record-hit record-hit-flip" type="button" id="flipCamera" aria-label="Переключить камеру"></button>
+          <button class="record-hit record-hit-main" type="button" id="recordMain" aria-label="Начать запись"></button>
+          <button class="record-hit record-hit-delete" type="button" id="deleteRecording" aria-label="Удалить запись"></button>
+        </div>
+      </div>
+
+      <div class="screen photo-camera-screen" id="photoCameraScreen" hidden>
+        <div class="photo-camera-frame" id="photoCameraFrame">
+          <video class="photo-camera-preview" id="photoCameraPreview" playsinline autoplay muted></video>
+          <img class="photo-camera-captured" id="photoCameraCaptured" alt="" hidden />
+        </div>
+        <div class="photo-camera-state photo-camera-open" id="photoCameraOpenState">
+          <img src="layouts/Фото и фотографии/Сделать фото/открыли камеру.svg" alt="" aria-hidden="true" />
+        </div>
+        <div class="photo-camera-state photo-camera-shot" id="photoCameraShotState" hidden>
+          <img src="layouts/Фото и фотографии/Сделать фото/сфоткали.svg" alt="" aria-hidden="true" />
+        </div>
+        <button class="photo-camera-hit photo-camera-close" type="button" id="closePhotoCamera" aria-label="Закрыть"></button>
+        <button class="photo-camera-hit photo-camera-shutter" type="button" id="photoCameraShutter" aria-label="Сделать фото"></button>
+        <button class="photo-camera-hit photo-camera-retake" type="button" id="photoCameraRetake" aria-label="Переснять" hidden></button>
+        <button class="photo-camera-hit photo-camera-confirm" type="button" id="photoCameraConfirm" aria-label="Использовать фото" hidden></button>
+      </div>
+
+      <div class="screen photo-gallery-screen" id="photoGalleryScreen" hidden>
+        <div class="photo-gallery-cropper" id="photoGalleryCropper">
+          <img class="photo-gallery-layout" src="assets/photo-gallery-stage.svg" alt="" aria-hidden="true" />
+          <img class="photo-gallery-preview" id="photoGalleryPreview" alt="" hidden />
+          <div class="photo-gallery-grid" id="photoGalleryGrid" hidden aria-hidden="true">
+            <div class="photo-gallery-crop-window" id="photoGalleryCropWindow">
+              <button class="photo-gallery-handle photo-gallery-handle-top-left" type="button" id="photoGalleryHandleTopLeft" aria-label="Resize top left"></button>
+              <button class="photo-gallery-handle photo-gallery-handle-top-right" type="button" id="photoGalleryHandleTopRight" aria-label="Resize top right"></button>
+              <button class="photo-gallery-handle photo-gallery-handle-bottom-left" type="button" id="photoGalleryHandleBottomLeft" aria-label="Resize bottom left"></button>
+              <button class="photo-gallery-handle photo-gallery-handle-bottom-right" type="button" id="photoGalleryHandleBottomRight" aria-label="Resize bottom right"></button>
+            </div>
+          </div>
+        </div>
+        <button class="photo-gallery-hit photo-gallery-cancel" type="button" id="cancelPhotoGallery" aria-label="Cancel photo selection"></button>
+        <button class="photo-gallery-hit photo-gallery-confirm" type="button" id="confirmPhotoGallery" aria-label="Confirm photo selection"></button>
+      </div>
+
+      <div class="screen photo-profile-screen" id="photoProfileScreen" hidden>
+        <header class="design-header photo-profile-screen-header">
+          <div class="design-nav">
+            <h1>Создание дизайна</h1>
+            <button class="design-close" type="button" id="closePhotoProfileScreen" aria-label="Закрыть">
+              <svg viewBox="341 68 12 12" aria-hidden="true">
+                <path d="M352.25 68.75L341.75 79.25" />
+                <path d="M352.25 79.25L341.75 68.75" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div class="photo-profile-state photo-profile-state-processing" id="photoProfileProcessingState">
+          <div class="photo-profile-stage photo-profile-stage-sync" aria-hidden="true"></div>
+          <div class="photo-profile-templates" aria-hidden="true">
+            <button class="design-templates-hold design-templates-hold-left photo-templates-hold-left" type="button" id="holdPhotoTemplatesLeftProcessing" aria-label="Прокрутить шаблоны влево"></button>
+            <div class="design-templates-viewport photo-templates-viewport" id="photoTemplatesViewportProcessing">
+              <div class="design-templates-track">
+                <button class="template-card template-abstract" type="button" aria-label="Абстрактный дизайн"></button>
+                <button class="template-card template-photo-preview is-selected" type="button" aria-label="Текущая фотография">
+                  <span class="template-photo-preview-inner" aria-hidden="true"></span>
+                </button>
+                <button class="template-card template-video-action" type="button" aria-label="Видео">
+                  <svg class="video-mark" viewBox="262 656 25 18" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M279.871 669.423C279.972 671.713 278.124 673.65 275.743 673.747C275.568 673.754 267.019 673.737 267.019 673.737C264.65 673.917 262.576 672.214 262.39 669.933C262.375 669.763 262.379 660.59 262.379 660.59C262.274 658.298 264.12 656.356 266.502 656.255C266.68 656.247 275.217 656.263 275.217 656.263C277.598 656.085 279.678 657.8 279.862 660.093C279.875 660.258 279.871 669.423 279.871 669.423Z" />
+                    <path d="M279.875 662.475L283.991 659.106C285.011 658.271 286.541 658.999 286.54 660.315L286.525 669.501C286.524 670.817 284.992 671.539 283.975 670.704L279.875 667.335" />
+                  </svg>
+                </button>
+                <button class="template-card template-photo" type="button" aria-label="Фото">
+                  <svg class="photo-mark" viewBox="257 654 25 24" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.553 655.402C274.9 655.938 275.312 657.804 275.863 658.404C276.413 659.004 277.201 659.208 277.637 659.208C279.955 659.208 281.833 661.087 281.833 663.403V671.13C281.833 674.236 279.313 676.756 276.207 676.756H262.793C259.685 676.756 257.167 674.236 257.167 671.13V663.403C257.167 661.087 259.045 659.208 261.363 659.208C261.797 659.208 262.585 659.004 263.137 658.404C263.688 657.804 264.099 655.938 265.445 655.402C266.793 654.866 272.207 654.866 273.553 655.402Z" />
+                    <path d="M276.827 662.667H276.839" />
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.738 667.504C273.738 665.162 271.841 663.265 269.499 663.265C267.158 663.265 265.261 665.162 265.261 667.504C265.261 669.845 267.158 671.742 269.499 671.742C271.841 671.742 273.738 669.845 273.738 667.504Z" />
+                  </svg>
+                </button>
+                <button class="template-card template-next" type="button" data-style-id="next" aria-label="Готовый стиль next"></button>
+              </div>
+            </div>
+            <button class="design-templates-hold design-templates-hold-right photo-templates-hold-right" type="button" id="holdPhotoTemplatesRightProcessing" aria-label="Прокрутить шаблоны вправо"></button>
+          </div>
+          <button class="design-preview-button photo-profile-preview-button photo-profile-preview-button-muted" type="button" disabled>Предпросмотр</button>
+        </div>
+        <div class="photo-profile-state photo-profile-state-sync" id="photoProfileSyncState" hidden>
+          <div class="photo-profile-stage photo-profile-stage-sync" aria-hidden="true"></div>
+          <div class="photo-profile-templates" aria-hidden="true">
+            <button class="design-templates-hold design-templates-hold-left photo-templates-hold-left" type="button" id="holdPhotoTemplatesLeftSync" aria-label="Прокрутить шаблоны влево"></button>
+            <div class="design-templates-viewport photo-templates-viewport" id="photoTemplatesViewportSync">
+              <div class="design-templates-track">
+                <button class="template-card template-abstract" type="button" aria-label="Абстрактный дизайн"></button>
+                <button class="template-card template-photo-preview is-selected" type="button" aria-label="Текущая фотография">
+                  <span class="template-photo-preview-inner" aria-hidden="true"></span>
+                </button>
+                <button class="template-card template-video-action" type="button" aria-label="Видео">
+                  <svg class="video-mark" viewBox="262 656 25 18" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M279.871 669.423C279.972 671.713 278.124 673.65 275.743 673.747C275.568 673.754 267.019 673.737 267.019 673.737C264.65 673.917 262.576 672.214 262.39 669.933C262.375 669.763 262.379 660.59 262.379 660.59C262.274 658.298 264.12 656.356 266.502 656.255C266.68 656.247 275.217 656.263 275.217 656.263C277.598 656.085 279.678 657.8 279.862 660.093C279.875 660.258 279.871 669.423 279.871 669.423Z" />
+                    <path d="M279.875 662.475L283.991 659.106C285.011 658.271 286.541 658.999 286.54 660.315L286.525 669.501C286.524 670.817 284.992 671.539 283.975 670.704L279.875 667.335" />
+                  </svg>
+                </button>
+                <button class="template-card template-photo" type="button" aria-label="Фото">
+                  <svg class="photo-mark" viewBox="257 654 25 24" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.553 655.402C274.9 655.938 275.312 657.804 275.863 658.404C276.413 659.004 277.201 659.208 277.637 659.208C279.955 659.208 281.833 661.087 281.833 663.403V671.13C281.833 674.236 279.313 676.756 276.207 676.756H262.793C259.685 676.756 257.167 674.236 257.167 671.13V663.403C257.167 661.087 259.045 659.208 261.363 659.208C261.797 659.208 262.585 659.004 263.137 658.404C263.688 657.804 264.099 655.938 265.445 655.402C266.793 654.866 272.207 654.866 273.553 655.402Z" />
+                    <path d="M276.827 662.667H276.839" />
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.738 667.504C273.738 665.162 271.841 663.265 269.499 663.265C267.158 663.265 265.261 665.162 265.261 667.504C265.261 669.845 267.158 671.742 269.499 671.742C271.841 671.742 273.738 669.845 273.738 667.504Z" />
+                  </svg>
+                </button>
+                <button class="template-card template-next" type="button" data-style-id="next" aria-label="Готовый стиль next"></button>
+              </div>
+            </div>
+            <button class="design-templates-hold design-templates-hold-right photo-templates-hold-right" type="button" id="holdPhotoTemplatesRightSync" aria-label="Прокрутить шаблоны вправо"></button>
+          </div>
+          <button class="design-preview-button photo-profile-preview-button photo-profile-preview-button-muted" type="button" disabled>Предпросмотр</button>
+        </div>
+        <div class="photo-profile-state photo-profile-state-ready" id="photoProfileReadyState" hidden>
+          <section class="design-card is-photo-layout photo-profile-photo-request-card" id="photoProfilePhotoRequestCard" hidden aria-label="Добавление фото">
+            <img class="photo-profile-request-card-logo" src="assets/photo-profile-logo.svg" alt="" />
+            <button class="media-circle is-photo-mode" type="button" id="photoProfilePhotoRequestTrigger" aria-label="Добавить фото">
+              <img class="photo-circle-mark" src="assets/photo-add-icon.svg" alt="" aria-hidden="true" />
+              <span class="media-label">Добавить фото</span>
+            </button>
+          </section>
+          <section class="design-card photo-profile-video-request-card" id="photoProfileVideoRequestCard" hidden aria-label="Дизайн с видеокружком">
+            <div class="design-logo">
+              <svg class="design-logo-svg" viewBox="144 128 87 16" aria-hidden="true">
+                <path d="M156.277 137.21C153.979 137.21 152.103 139.258 151.048 142.065V140.615C151.048 138.153 150.087 137.21 147.648 137.21H144.67C145.139 140.822 147.648 143.468 151.118 143.468C154.377 143.468 157.238 140.73 157.238 138.153C157.238 137.486 156.956 137.21 156.277 137.21ZM156.23 131.251C156.23 129.916 155.925 128.858 155.339 128.858C154.753 128.858 153.932 129.824 153.229 131.182C152.665 129.571 151.985 128.536 151.282 128.536C150.579 128.536 149.664 129.571 148.82 131.182C148.141 129.732 147.343 128.996 146.827 128.996C146.382 128.996 146.124 129.456 145.937 130.169C145.749 130.882 145.679 131.78 145.679 132.539C145.679 135.162 148.398 136.612 151.118 136.612C153.463 136.612 155.011 135.876 155.667 134.679C156.183 133.759 156.23 132.654 156.23 131.251Z" />
+                <path d="M168.716 131.353V130.576H165.676V131.651C162.875 131.958 160.544 133.776 160.544 136.372C160.544 138.765 162.774 140.483 165.676 140.685V141.424H168.716V140.483C171.585 140.147 173.915 138.324 173.915 135.632C173.915 133.272 171.685 131.655 168.716 131.353ZM165.676 138.497C164.395 138.429 163.479 137.384 163.479 135.8C163.479 134.318 164.424 133.071 165.676 132.802V138.497ZM168.716 139.135V133.407C170.098 133.709 170.98 134.688 170.98 136.103C170.98 137.791 169.934 138.866 168.716 139.135Z" />
+                <path d="M227.972 131.015C228.212 131.787 228.144 132.703 227.603 133.879L226.826 135.601L224.864 131.019H221.387L225.368 138.771L224.054 141.098H226.452L230.673 131.019H227.972V131.015Z" />
+                <path d="M187.892 131.015C188.228 131.955 188.06 132.938 187.455 134.488L184.923 141.094H186.985L187.728 138.767H190.903L191.646 141.094H195.09L191.067 131.015H187.892ZM188.266 137.184L189.244 134.152L190.29 137.184H188.262H188.266Z" />
+                <path d="M210.515 135.437C211.661 134.895 212.132 134.152 212.132 133.274C212.132 132.098 210.952 131.015 208.554 131.015H203.627V141.094H208.554C210.985 141.094 212.573 139.51 212.573 137.961C212.573 136.713 211.796 135.903 210.511 135.433L210.515 135.437ZM206.567 132.669H207.378C208.726 132.669 209.272 133.274 209.272 133.95C209.272 134.387 209.07 134.756 208.73 135.126H206.567V132.665V132.669ZM207.844 139.38H207.848L206.567 139.376V136.546H207.781C209.062 136.546 209.671 137.217 209.671 137.961C209.671 138.704 208.894 139.376 207.844 139.376V139.38Z" />
+                <path d="M176.717 131.015L176.381 137.352C176.347 138.158 175.877 138.393 175.033 138.158L174.29 137.957V141.089C174.529 141.123 174.764 141.157 174.966 141.157C177.061 141.157 178.275 139.914 178.443 137.654L178.779 132.804H181.009V141.094H184.045V131.015H176.721H176.717Z" />
+                <path d="M199.853 133.877L199.076 135.599L197.114 131.018H193.637L197.618 138.77L196.304 141.097H198.702L202.923 131.018H200.222C200.462 131.79 200.39 132.706 199.853 133.882V133.877Z" />
+                <path d="M218.822 131.015H215.647C215.983 131.955 215.815 132.938 215.211 134.488L212.678 141.094H214.74L215.484 138.767H218.658L219.402 141.094H222.845L218.826 131.015H218.822ZM216.017 137.184L216.995 134.152L218.041 137.184H216.013H216.017Z" />
+              </svg>
+            </div>
+            <button class="media-circle" type="button" id="photoProfileVideoRequestTrigger" aria-label="Записать видеокружок">
+              <img class="design-loading-circle" src="assets/design-loading-circle.svg" alt="" aria-hidden="true" />
+              <svg class="design-progress" viewBox="0 0 292 292" aria-hidden="true">
+                <circle cx="146" cy="146" r="138" />
+              </svg>
+              <video class="media-circle-video" playsinline preload="metadata"></video>
+              <svg class="camera-mark" viewBox="170 302 35 34" aria-hidden="true">
+                <path d="M195.31 302.333C200.77 302.333 204.167 306.187 204.167 311.642V326.358C204.167 331.813 200.77 335.667 195.31 335.667H179.69C174.23 335.667 170.833 331.813 170.833 326.358V311.642C170.833 306.187 174.246 302.333 179.69 302.333H195.31ZM187.501 312.334C183.819 312.334 180.834 315.318 180.834 319C180.834 322.682 183.818 325.667 187.501 325.667C191.183 325.667 194.167 322.682 194.167 319C194.167 315.318 191.183 312.334 187.501 312.334ZM197 307C195.895 307 195 307.895 195 309C195 310.105 195.895 311 197 311C198.105 311 199 310.105 199 309C199 307.895 198.105 307 197 307Z" />
+              </svg>
+              <img class="photo-circle-mark" src="assets/photo-add-icon.svg" alt="" aria-hidden="true" />
+              <span class="media-label">Записать видеокружок</span>
+              <span class="design-play" hidden aria-hidden="true">
+                <svg viewBox="170 327 34 38">
+                  <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
+                </svg>
+              </span>
+            </button>
+          </section>
+          <div class="photo-profile-templates" aria-label="Шаблоны дизайна">
+            <button class="design-templates-hold design-templates-hold-left photo-templates-hold-left" type="button" id="holdPhotoTemplatesLeftReady" aria-label="Прокрутить шаблоны влево"></button>
+            <div class="design-templates-viewport photo-templates-viewport" id="photoTemplatesViewportReady">
+              <div class="design-templates-track">
+                <button class="template-card template-abstract photo-template-card" type="button" aria-label="Абстрактный дизайн"></button>
+                <button class="template-card template-photo-preview photo-template-card is-selected" type="button" id="photoReadyTemplate" aria-label="Текущая фотография">
+                  <span class="template-photo-preview-inner" aria-hidden="true"></span>
+                </button>
+                <button class="template-card template-video-action photo-template-card" type="button" aria-label="Видео">
+                  <svg class="video-mark" viewBox="262 656 25 18" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M279.871 669.423C279.972 671.713 278.124 673.65 275.743 673.747C275.568 673.754 267.019 673.737 267.019 673.737C264.65 673.917 262.576 672.214 262.39 669.933C262.375 669.763 262.379 660.59 262.379 660.59C262.274 658.298 264.12 656.356 266.502 656.255C266.68 656.247 275.217 656.263 275.217 656.263C277.598 656.085 279.678 657.8 279.862 660.093C279.875 660.258 279.871 669.423 279.871 669.423Z" />
+                    <path d="M279.875 662.475L283.991 659.106C285.011 658.271 286.541 658.999 286.54 660.315L286.525 669.501C286.524 670.817 284.992 671.539 283.975 670.704L279.875 667.335" />
+                  </svg>
+                </button>
+                <button class="template-card template-photo photo-template-card" type="button" aria-label="Фото">
+                  <svg class="photo-mark" viewBox="257 654 25 24" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.553 655.402C274.9 655.938 275.312 657.804 275.863 658.404C276.413 659.004 277.201 659.208 277.637 659.208C279.955 659.208 281.833 661.087 281.833 663.403V671.13C281.833 674.236 279.313 676.756 276.207 676.756H262.793C259.685 676.756 257.167 674.236 257.167 671.13V663.403C257.167 661.087 259.045 659.208 261.363 659.208C261.797 659.208 262.585 659.004 263.137 658.404C263.688 657.804 264.099 655.938 265.445 655.402C266.793 654.866 272.207 654.866 273.553 655.402Z" />
+                    <path d="M276.827 662.667H276.839" />
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M273.738 667.504C273.738 665.162 271.841 663.265 269.499 663.265C267.158 663.265 265.261 665.162 265.261 667.504C265.261 669.845 267.158 671.742 269.499 671.742C271.841 671.742 273.738 669.845 273.738 667.504Z" />
+                  </svg>
+                </button>
+                <button class="template-card template-next photo-template-card" type="button" data-style-id="next" aria-label="Готовый стиль next"></button>
+              </div>
+            </div>
+            <button class="design-templates-hold design-templates-hold-right photo-templates-hold-right" type="button" id="holdPhotoTemplatesRightReady" aria-label="Прокрутить шаблоны вправо"></button>
+          </div>
+          <button class="design-preview-button photo-profile-preview-button" type="button" id="photoProfilePreviewButton">Предпросмотр</button>
+        </div>
+        <div class="photo-profile-card" id="photoProfileCard" hidden aria-label="Дизайн открытки с фото">
+          <div class="photo-profile-card-face photo-profile-card-front" aria-hidden="true">
+            <img class="photo-profile-card-logo" src="assets/photo-profile-logo.svg" alt="" />
+            <button class="photo-profile-text photo-profile-text-inline" type="button" id="photoProfileText" aria-label="Текст">
+              <svg viewBox="50 521 16 16" aria-hidden="true">
+                <path d="M59.4561 536.036H65.4999" />
+                <path d="M58.65 522.162C59.2964 521.39 60.4583 521.277 61.2469 521.91C61.2905 521.944 62.6912 523.032 62.6912 523.032C63.5575 523.556 63.8266 524.669 63.2912 525.519C63.2627 525.564 55.3433 535.47 55.3433 535.47C55.0798 535.799 54.6799 535.993 54.2524 535.998L51.2196 536.036L50.5363 533.144C50.4406 532.737 50.5363 532.31 50.7998 531.981L58.65 522.162Z" />
+                <path d="M57.1836 524.001L61.7271 527.49" />
+              </svg>
+              <img src="assets/photo-profile-text-label.svg" alt="" aria-hidden="true" />
+            </button>
+          </div>
+          <div class="photo-profile-card-face photo-profile-card-back">
+            <textarea class="photo-ecard-message" id="photoEcardMessage" placeholder="Добавьте текст открытки"></textarea>
+            <input class="photo-ecard-signature" id="photoEcardSignature" type="text" placeholder="Добавьте подпись" />
+            <button class="photo-ecard-flip-back" type="button" id="flipPhotoCardBack">
+              <svg viewBox="124 512 18 18" aria-hidden="true">
+                <path d="M130.592 515.233C131.317 515.017 132.117 514.875 133 514.875C136.992 514.875 140.225 518.108 140.225 522.1C140.225 526.092 136.992 529.325 133 529.325C129.009 529.325 125.775 526.092 125.775 522.1C125.775 520.617 126.225 519.233 126.992 518.083" />
+                <path d="M129.559 515.433L131.967 512.667" />
+                <path d="M129.559 515.433L132.367 517.483" />
+              </svg>
+              <span>Перевернуть</span>
+            </button>
+          </div>
+        </div>
+        <button class="photo-profile-hit photo-profile-delete" type="button" id="photoProfileDelete" aria-label="Удалить фото">
+          <svg viewBox="258 655 18 18" aria-hidden="true">
+            <path d="M271.5 660.5L262.5 669.5" />
+            <path d="M271.5 669.5L262.5 660.5" />
+          </svg>
+        </button>
+        <button class="photo-profile-hit photo-profile-replace" type="button" id="photoProfileReplace" aria-label="Заменить фото">
+          <svg viewBox="312 654 25 24" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M328.553 655.402C329.9 655.938 330.312 657.804 330.863 658.404C331.413 659.004 332.201 659.208 332.637 659.208C334.955 659.208 336.833 661.087 336.833 663.403V671.13C336.833 674.236 334.313 676.756 331.207 676.756H317.793C314.685 676.756 312.167 674.236 312.167 671.13V663.403C312.167 661.087 314.045 659.208 316.363 659.208C316.797 659.208 317.585 659.004 318.137 658.404C318.688 657.804 319.099 655.938 320.445 655.402C321.793 654.866 327.207 654.866 328.553 655.402Z" />
+            <path d="M331.827 662.667H331.839" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M328.738 667.504C328.738 665.162 326.841 663.265 324.499 663.265C322.158 663.265 320.261 665.162 320.261 667.504C320.261 669.845 322.158 671.742 324.499 671.742C326.841 671.742 328.738 669.845 328.738 667.504Z" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="screen preview-screen" id="previewScreen" hidden>
+        <header class="design-header preview-screen-header">
+          <div class="design-nav">
+            <button class="preview-nav-button preview-nav-back" type="button" id="closePreviewBack" aria-label="Назад">
+              <span class="chevron-left"></span>
+            </button>
+            <h1>Предпросмотр</h1>
+            <button class="design-close" type="button" id="closePreview" aria-label="Закрыть">
+              <svg viewBox="341 68 12 12" aria-hidden="true">
+                <path d="M352.25 68.75L341.75 79.25" />
+                <path d="M352.25 79.25L341.75 68.75" />
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div class="preview-screen-body">
+          <div class="preview-butterflies" id="previewButterflies" aria-hidden="true">
+            <img class="preview-butterfly preview-butterfly-a" src="assets/preview-butterfly.svg" alt="" />
+            <img class="preview-butterfly preview-butterfly-b" src="assets/preview-butterfly.svg" alt="" />
+            <img class="preview-butterfly preview-butterfly-c" src="assets/preview-butterfly.svg" alt="" />
+            <img class="preview-butterfly preview-butterfly-d" src="assets/preview-butterfly.svg" alt="" />
+            <img class="preview-butterfly preview-butterfly-e" src="assets/preview-butterfly.svg" alt="" />
+          </div>
+          <div class="preview-card-shell" id="previewCardShell">
+            <div class="preview-card-face preview-card-front" id="previewCardFront">
+              <div class="preview-front-layer preview-front-video" id="previewFrontVideo" hidden>
+                <div class="preview-design-card">
+                  <div class="preview-design-logo">
+                    <svg class="design-logo-svg" viewBox="144 128 87 16" aria-hidden="true">
+                      <path d="M156.277 137.21C153.979 137.21 152.103 139.258 151.048 142.065V140.615C151.048 138.153 150.087 137.21 147.648 137.21H144.67C145.139 140.822 147.648 143.468 151.118 143.468C154.377 143.468 157.238 140.73 157.238 138.153C157.238 137.486 156.956 137.21 156.277 137.21ZM156.23 131.251C156.23 129.916 155.925 128.858 155.339 128.858C154.753 128.858 153.932 129.824 153.229 131.182C152.665 129.571 151.985 128.536 151.282 128.536C150.579 128.536 149.664 129.571 148.82 131.182C148.141 129.732 147.343 128.996 146.827 128.996C146.382 128.996 146.124 129.456 145.937 130.169C145.749 130.882 145.679 131.78 145.679 132.539C145.679 135.162 148.398 136.612 151.118 136.612C153.463 136.612 155.011 135.876 155.667 134.679C156.183 133.759 156.23 132.654 156.23 131.251Z" />
+                      <path d="M168.716 131.353V130.576H165.676V131.651C162.875 131.958 160.544 133.776 160.544 136.372C160.544 138.765 162.774 140.483 165.676 140.685V141.424H168.716V140.483C171.585 140.147 173.915 138.324 173.915 135.632C173.915 133.272 171.685 131.655 168.716 131.353ZM165.676 138.497C164.395 138.429 163.479 137.384 163.479 135.8C163.479 134.318 164.424 133.071 165.676 132.802V138.497ZM168.716 139.135V133.407C170.098 133.709 170.98 134.688 170.98 136.103C170.98 137.791 169.934 138.866 168.716 139.135Z" />
+                      <path d="M227.972 131.015C228.212 131.787 228.144 132.703 227.603 133.879L226.826 135.601L224.864 131.019H221.387L225.368 138.771L224.054 141.098H226.452L230.673 131.019H227.972V131.015Z" />
+                      <path d="M187.892 131.015C188.228 131.955 188.06 132.938 187.455 134.488L184.923 141.094H186.985L187.728 138.767H190.903L191.646 141.094H195.09L191.067 131.015H187.892ZM188.266 137.184L189.244 134.152L190.29 137.184H188.262H188.266Z" />
+                      <path d="M210.515 135.437C211.661 134.895 212.132 134.152 212.132 133.274C212.132 132.098 210.952 131.015 208.554 131.015H203.627V141.094H208.554C210.985 141.094 212.573 139.51 212.573 137.961C212.573 136.713 211.796 135.903 210.511 135.433L210.515 135.437ZM206.567 132.669H207.378C208.726 132.669 209.272 133.274 209.272 133.95C209.272 134.387 209.07 134.756 208.73 135.126H206.567V132.665V132.669ZM207.844 139.38H207.848L206.567 139.376V136.546H207.781C209.062 136.546 209.671 137.217 209.671 137.961C209.671 138.704 208.894 139.376 207.844 139.376V139.38Z" />
+                      <path d="M176.717 131.015L176.381 137.352C176.347 138.158 175.877 138.393 175.033 138.158L174.29 137.957V141.089C174.529 141.123 174.764 141.157 174.966 141.157C177.061 141.157 178.275 139.914 178.443 137.654L178.779 132.804H181.009V141.094H184.045V131.015H176.721H176.717Z" />
+                      <path d="M199.853 133.877L199.076 135.599L197.114 131.018H193.637L197.618 138.77L196.304 141.097H198.702L202.923 131.018H200.222C200.462 131.79 200.39 132.706 199.853 133.882V133.877Z" />
+                      <path d="M218.822 131.015H215.647C215.983 131.955 215.815 132.938 215.211 134.488L212.678 141.094H214.74L215.484 138.767H218.658L219.402 141.094H222.845L218.826 131.015H218.822ZM216.017 137.184L216.995 134.152L218.041 137.184H216.013H216.017Z" />
+                    </svg>
+                  </div>
+                  <div class="preview-media-circle" id="previewMediaCircle">
+                    <svg class="preview-progress" viewBox="0 0 292 292" aria-hidden="true">
+                      <circle cx="146" cy="146" r="138" />
+                    </svg>
+                    <video class="preview-media-video" id="previewVideoPlayer" playsinline preload="metadata"></video>
+                    <span class="preview-play" aria-hidden="true">
+                      <svg viewBox="170 327 34 38">
+                        <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-front-layer preview-front-photo" id="previewFrontPhoto" hidden>
+                <div class="preview-photo-card">
+                  <img class="preview-photo-logo" src="assets/photo-profile-logo.svg" alt="" />
+                </div>
+              </div>
+              <div class="preview-front-layer preview-front-style" id="previewFrontStyle" hidden>
+                <div class="preview-style-card" id="previewStyleCard">
+                  <img class="preview-style-logo" src="assets/photo-profile-logo.svg" alt="" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
+            <div class="preview-card-face preview-card-back">
+              <div class="preview-text-card">
+                <div class="preview-text-message" id="previewTextMessage"></div>
+                <div class="preview-text-signature" id="previewTextSignature"></div>
+              </div>
+            </div>
+          </div>
+          <button class="preview-flip-trigger" type="button" id="previewFlipTrigger" aria-label="Перевернуть открытку">
+            <img class="preview-flip-trigger-art" src="assets/preview-flip-trigger.svg" alt="" aria-hidden="true" />
+          </button>
+          <button class="design-preview-button preview-submit-button" type="button" id="previewSubmitButton">Добавить в заказ</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="overlay" hidden></div>
+      <section class="sheet intro-sheet" id="introSheet" hidden aria-modal="true" role="dialog">
+        <div class="grabber"></div>
+        <div class="intro-art">
+          <div class="intro-photo"></div>
+        </div>
+        <h2>Создайте уникальное электронное поздравление</h2>
+        <p>Загрузите фото или запишите видео, выберите дизайн и добавьте открытку к заказу. Она придет получателю в приложение, когда курьер будет вручать основной подарок</p>
+        <small>Нажав кнопку "Добавить", я несу ответственность и обязуюсь <a href="#">правила публикации пользовательского контента</a></small>
+        <button class="primary" type="button" id="addEcard">Добавить</button>
+        <button class="ghost" type="button" id="later">Позже</button>
+      </section>
+    </main>
+
+    <div class="photo-picker-sheet" id="photoPickerSheet" hidden aria-modal="true" role="dialog">
+      <div class="photo-picker-group">
+        <button class="photo-picker-option" type="button" id="pickFromGallery">Выбрать из галереи</button>
+        <button class="photo-picker-option" type="button" id="takePhoto">Сделать фото</button>
+      </div>
+      <button class="photo-picker-cancel" type="button" id="closePhotoPicker">Отменить</button>
+    </div>
+
+    <input id="photoFileInput" type="file" accept="image/*" hidden />
+    <canvas id="photoCaptureCanvas" hidden></canvas>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+<svg width="112" height="63" viewBox="0 0 112 63" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="56" cy="16" r="16" fill="white" fill-opacity="0.3"/>
+  <circle cx="56" cy="16" r="9.33333" fill="white" fill-opacity="0.5"/>
+  <text x="56" y="50" fill="white" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif" font-size="8.9" font-weight="400" letter-spacing="0" text-anchor="middle">
+    <tspan x="56" dy="0">Нажмите, чтобы</tspan>
+    <tspan x="56" dy="11">перевернуть</tspan>
+  </text>
+</svg>
