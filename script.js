@@ -52,6 +52,7 @@ const photoCameraCaptured = document.querySelector("#photoCameraCaptured");
 const photoCaptureCanvas = document.querySelector("#photoCaptureCanvas");
 const photoCameraOpenState = document.querySelector("#photoCameraOpenState");
 const photoCameraShotState = document.querySelector("#photoCameraShotState");
+const photoCameraError = document.querySelector("#photoCameraError");
 const closePhotoCamera = document.querySelector("#closePhotoCamera");
 const photoCameraShutter = document.querySelector("#photoCameraShutter");
 const photoCameraRetake = document.querySelector("#photoCameraRetake");
@@ -800,6 +801,65 @@ function syncFlipCameraState() {
   flipCamera.disabled = !canFlip;
 }
 
+function isMobileCameraDevice() {
+  return window.matchMedia?.("(pointer: coarse)").matches || false;
+}
+
+function ensureCameraAvailable() {
+  if (!window.isSecureContext) {
+    throw new Error("insecure-context");
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("getUserMedia-unavailable");
+  }
+}
+
+function buildUserCameraConstraints(size) {
+  const constraints = {
+    facingMode: isMobileCameraDevice() ? { ideal: "user" } : "user"
+  };
+  if (size?.width) constraints.width = { ideal: size.width };
+  if (size?.height) constraints.height = { ideal: size.height };
+  return constraints;
+}
+
+function buildVideoConstraintAttempts(size, deviceId) {
+  const attempts = [buildUserCameraConstraints(size), true];
+  if (deviceId) {
+    attempts.push({ deviceId: { exact: deviceId } });
+  }
+  return attempts;
+}
+
+function prepareLiveVideoElement(video, muted = true) {
+  if (!video) return;
+  video.playsInline = true;
+  video.autoplay = true;
+  video.muted = muted;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("autoplay", "");
+  if (muted) {
+    video.setAttribute("muted", "");
+  } else {
+    video.removeAttribute("muted");
+  }
+}
+
+function getCameraErrorMessage(error) {
+  const messageByCode = {
+    "insecure-context": "Откройте сайт по https, чтобы включить камеру на телефоне",
+    "getUserMedia-unavailable": "Камера недоступна в этом браузере",
+    "media-recorder-unavailable": "Запись видео не поддерживается в этом браузере",
+    NotAllowedError: "Нет доступа к камере",
+    NotFoundError: "Камера не найдена",
+    NotReadableError: "Камера занята другим приложением",
+    OverconstrainedError: "Не удалось открыть выбранную камеру",
+    SecurityError: "Откройте сайт по https, чтобы включить камеру",
+    NotSupportedError: "Камера не поддерживается на этом устройстве"
+  };
+  return typeof error === "string" ? error : messageByCode[error?.name || error?.message] || "Не удалось открыть камеру";
+}
+
 async function refreshVideoInputDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) {
     availableVideoDevices = [];
@@ -812,25 +872,33 @@ async function refreshVideoInputDevices() {
 }
 
 async function openCameraStream(deviceId = preferredVideoDeviceId) {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    throw new Error("getUserMedia-unavailable");
-  }
+  ensureCameraAvailable();
   stopStream(activeMediaStream);
-  activeMediaStream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true
-    },
-    video: deviceId
-      ? { deviceId: { exact: deviceId } }
-      : { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } }
-  });
+  activeMediaStream = null;
+  let lastError = null;
+  for (const videoConstraints of buildVideoConstraintAttempts({ width: 720, height: 720 }, deviceId)) {
+    try {
+      activeMediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        },
+        video: videoConstraints
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!activeMediaStream) {
+    throw lastError || new Error("getUserMedia-unavailable");
+  }
   const [track] = activeMediaStream.getVideoTracks();
   const settings = track?.getSettings?.() || {};
   preferredVideoDeviceId = settings.deviceId || deviceId || preferredVideoDeviceId;
+  prepareLiveVideoElement(recordPreviewVideo, true);
   recordPreviewVideo.srcObject = activeMediaStream;
-  recordPreviewVideo.muted = true;
   recordScreen.classList.add("has-live-preview");
   await recordPreviewVideo.play().catch(() => {});
   await refreshVideoInputDevices();
@@ -1030,6 +1098,8 @@ function resetPhotoCameraView() {
   photoCameraFrame?.classList.remove("is-shot");
   photoCameraOpenState.hidden = false;
   photoCameraShotState.hidden = true;
+  photoCameraError.hidden = true;
+  photoCameraError.textContent = "";
   photoCameraCaptured.hidden = true;
   photoCameraCaptured.removeAttribute("src");
   photoCameraShutter.hidden = false;
@@ -1038,14 +1108,25 @@ function resetPhotoCameraView() {
 }
 
 async function openPhotoStream() {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    throw new Error("getUserMedia-unavailable");
-  }
+  ensureCameraAvailable();
   stopPhotoStream();
-  activePhotoStream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1080 } }
-  });
+  activePhotoStream = null;
+  let lastError = null;
+  for (const videoConstraints of buildVideoConstraintAttempts({ width: 1080, height: 1080 })) {
+    try {
+      activePhotoStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: videoConstraints
+      });
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!activePhotoStream) {
+    throw lastError || new Error("getUserMedia-unavailable");
+  }
+  prepareLiveVideoElement(photoCameraPreview, true);
   photoCameraPreview.srcObject = activePhotoStream;
   await photoCameraPreview.play().catch(() => {});
 }
@@ -1337,18 +1418,17 @@ function openRecorderFromPhotoProfile() {
 }
 
 function showRecordError(error) {
-  const messageByCode = {
-    "getUserMedia-unavailable": "Камера недоступна в этом браузере",
-    "media-recorder-unavailable": "Запись видео не поддерживается в этом браузере",
-    NotAllowedError: "Нет доступа к камере",
-    NotFoundError: "Камера не найдена",
-    NotReadableError: "Камера занята другим приложением",
-    OverconstrainedError: "Не удалось открыть выбранную камеру"
-  };
-  const message = typeof error === "string" ? error : messageByCode[error?.name || error?.message] || "Не удалось открыть камеру";
-  recordError.textContent = message;
+  recordError.textContent = getCameraErrorMessage(error);
   recordError.hidden = false;
   flipCamera.disabled = true;
+}
+
+function showPhotoCameraError(error) {
+  photoCameraError.textContent = getCameraErrorMessage(error);
+  photoCameraError.hidden = false;
+  photoCameraShutter.hidden = true;
+  photoCameraRetake.hidden = true;
+  photoCameraConfirm.hidden = true;
 }
 
 function closeRecorder() {
@@ -1382,9 +1462,9 @@ async function startRecording() {
   try {
     const mimeType = await ensureRecorderReady();
     if (recordPreviewVideo.srcObject !== activeMediaStream) {
+      prepareLiveVideoElement(recordPreviewVideo, true);
       recordPreviewVideo.srcObject = activeMediaStream;
     }
-    recordPreviewVideo.muted = true;
     await recordPreviewVideo.play().catch(() => {});
     pendingRecordedChunks = [];
     activeRecorder = new MediaRecorder(activeMediaStream, { mimeType });
@@ -1446,8 +1526,8 @@ function deleteDraftRecording() {
   clearDraftVideoAsset();
   detachVideoElement(recordPreviewVideo);
   if (activeMediaStream) {
+    prepareLiveVideoElement(recordPreviewVideo, true);
     recordPreviewVideo.srcObject = activeMediaStream;
-    recordPreviewVideo.muted = true;
     recordPreviewVideo.play().catch(() => {});
   }
   resetRecordSurface();
@@ -1499,8 +1579,7 @@ async function openPhotoCamera() {
   try {
     await openPhotoStream();
   } catch (error) {
-    closePhotoCameraScreen();
-    showRecordError(error);
+    showPhotoCameraError(error);
   }
 }
 

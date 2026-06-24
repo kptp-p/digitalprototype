@@ -267,7 +267,7 @@
           <svg class="record-progress" viewBox="0 0 292 292" aria-hidden="true">
             <circle cx="146" cy="146" r="138" />
           </svg>
-          <video class="record-preview-video" id="recordPreviewVideo" playsinline preload="metadata" muted></video>
+          <video class="record-preview-video" id="recordPreviewVideo" playsinline autoplay preload="metadata" muted></video>
           <button class="record-play" type="button" id="recordPlay" aria-label="Предпросмотр" hidden>
             <svg viewBox="170 327 34 38" aria-hidden="true">
               <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
@@ -296,6 +296,7 @@
         <div class="photo-camera-state photo-camera-shot" id="photoCameraShotState" hidden>
           <img src="layouts/Фото и фотографии/Сделать фото/сфоткали.svg" alt="" aria-hidden="true" />
         </div>
+        <p class="record-error" id="photoCameraError" hidden></p>
         <button class="photo-camera-hit photo-camera-close" type="button" id="closePhotoCamera" aria-label="Закрыть"></button>
         <button class="photo-camera-hit photo-camera-shutter" type="button" id="photoCameraShutter" aria-label="Сделать фото"></button>
         <button class="photo-camera-hit photo-camera-retake" type="button" id="photoCameraRetake" aria-label="Переснять" hidden></button>
