@@ -270,8 +270,7 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0,
-    needsIosRotationFix: Boolean(meta.needsIosRotationFix)
+    captureHeight: meta.captureHeight || 0
   };
 }
 
@@ -296,25 +295,7 @@ function detachVideoElement(video) {
   video.load();
 }
 
-function isIPhoneSafari() {
-  const ua = navigator.userAgent || "";
-  return /iPhone/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
-}
-
-function syncPlaybackVideoOrientation(video, meta = {}) {
-  if (!video) return;
-  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
-  video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
-  if (shouldCorrectRotation) {
-    video.style.setProperty("transform", "rotate(-90deg) scale(1.78)", "important");
-    video.style.setProperty("transform-origin", "center center", "important");
-  } else {
-    video.style.removeProperty("transform");
-    video.style.removeProperty("transform-origin");
-  }
-}
-
-function setVideoElementSource(video, url, muted = false, meta = {}) {
+function setVideoElementSource(video, url, muted = false) {
   if (!video) return;
   video.pause();
   video.srcObject = null;
@@ -322,20 +303,11 @@ function setVideoElementSource(video, url, muted = false, meta = {}) {
   video.muted = muted;
   video.controls = false;
   video.removeAttribute("autoplay");
-  if (video._orientationSyncHandler) {
-    video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
-  }
-  video.classList.remove("is-rotated-ios-video");
-  video.style.removeProperty("transform");
-  video.style.removeProperty("transform-origin");
   if (url) {
-    video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
-    video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
     return;
   }
-  video._orientationSyncHandler = null;
   video.removeAttribute("src");
   video.load();
 }
@@ -1518,13 +1490,10 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
-        needsIosRotationFix:
-          isIPhoneSafari()
-          && Number(activeVideoCaptureSettings.height) > Number(activeVideoCaptureSettings.width)
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0
       });
       hasDraftVideo = true;
-      setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
+      setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false);
       recordTimer.textContent = "0:00";
       setRecordProgress(1);
       setRecorderMode("recorded");
@@ -1868,7 +1837,7 @@ function syncPreviewContent() {
   previewMediaCircle.classList.toggle("is-video", variant === "video");
   previewMediaCircle.classList.toggle("has-video", variant === "video" && Boolean(videoUrl));
   previewMediaCircle.style.setProperty("--preview-media-asset", "none");
-  setVideoElementSource(previewVideoPlayer, variant === "video" ? videoUrl : "", false, state.ecardMedia.video);
+  setVideoElementSource(previewVideoPlayer, variant === "video" ? videoUrl : "", false);
   previewPlay.hidden = !(variant === "video" && videoUrl);
   previewScreen.style.setProperty("--preview-card-bg", state.designColor);
   previewScreen.style.setProperty("--preview-photo-asset", `url("${photoUrl}")`);
@@ -2021,8 +1990,8 @@ function syncDesignVideo() {
   mediaCircle.classList.toggle("is-ready", isReady);
   mediaCircle.classList.toggle("is-photo-mode", isPhotoMode);
   stopDesignPreview(false);
-  setVideoElementSource(designVideoPreview, hasVideo ? videoUrl : "", false, state.ecardMedia.video);
-  setVideoElementSource(templateVideoPreview, hasVideo ? videoUrl : "", true, state.ecardMedia.video);
+  setVideoElementSource(designVideoPreview, hasVideo ? videoUrl : "", false);
+  setVideoElementSource(templateVideoPreview, hasVideo ? videoUrl : "", true);
   templateVideo.classList.toggle("has-video", hasVideo);
   templateVideo.classList.toggle("is-loading", false);
   templateVideo.classList.toggle("is-retry", false);
