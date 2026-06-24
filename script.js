@@ -305,16 +305,12 @@ function syncPlaybackVideoOrientation(video, meta = {}) {
   if (!video) return;
   const captureWidth = Number(meta.captureWidth) || 0;
   const captureHeight = Number(meta.captureHeight) || 0;
-  const recordedWidth = Number(video.videoWidth) || 0;
-  const recordedHeight = Number(video.videoHeight) || 0;
   const shouldCorrectRotation =
     isIPhoneSafari()
-    && captureHeight > captureWidth
-    && recordedWidth > recordedHeight;
+    && captureHeight > captureWidth;
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
   if (shouldCorrectRotation) {
-    const scale = recordedHeight ? (recordedWidth / recordedHeight) : 1;
-    video.style.setProperty("transform", `rotate(-90deg) scale(${scale})`, "important");
+    video.style.setProperty("transform", "rotate(-90deg) scale(1.78)", "important");
     video.style.setProperty("transform-origin", "center center", "important");
   } else {
     video.style.removeProperty("transform");
