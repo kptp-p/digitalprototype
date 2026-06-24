@@ -45,7 +45,6 @@ const photoGalleryCropWindow = document.querySelector("#photoGalleryCropWindow")
 const cancelPhotoGallery = document.querySelector("#cancelPhotoGallery");
 const confirmPhotoGallery = document.querySelector("#confirmPhotoGallery");
 const photoFileInput = document.querySelector("#photoFileInput");
-const videoFileInput = document.querySelector("#videoFileInput");
 const photoCameraScreen = document.querySelector("#photoCameraScreen");
 const photoCameraFrame = document.querySelector("#photoCameraFrame");
 const photoCameraPreview = document.querySelector("#photoCameraPreview");
@@ -278,7 +277,8 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0
+    captureHeight: meta.captureHeight || 0,
+    needsIosRotationFix: Boolean(meta.needsIosRotationFix)
   };
 }
 
@@ -303,6 +303,23 @@ function detachVideoElement(video) {
   video.load();
 }
 
+function isIPhoneSafari() {
+  const ua = navigator.userAgent || "";
+  return /iPhone/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+}
+
+function syncPlaybackVideoOrientation(video, meta = {}) {
+  if (!video) return;
+  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
+  if (shouldCorrectRotation) {
+    video.style.setProperty("transform", "rotate(270deg) scale(1.78)", "important");
+    video.style.setProperty("transform-origin", "center center", "important");
+    return;
+  }
+  video.style.removeProperty("transform");
+  video.style.removeProperty("transform-origin");
+}
+
 function setVideoElementSource(video, url, muted = false) {
   if (!video) return;
   video.pause();
@@ -311,11 +328,20 @@ function setVideoElementSource(video, url, muted = false) {
   video.muted = muted;
   video.controls = false;
   video.removeAttribute("autoplay");
+  if (video._orientationSyncHandler) {
+    video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
+  }
+  video.style.removeProperty("transform");
+  video.style.removeProperty("transform-origin");
   if (url) {
+    const meta = arguments[3] || {};
+    video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
+    video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
     return;
   }
+  video._orientationSyncHandler = null;
   video.removeAttribute("src");
   video.load();
 }
@@ -1219,15 +1245,6 @@ function handlePhotoFileSelection(file) {
   openPhotoGalleryEditor();
 }
 
-function isValidVideoFile(file) {
-  return Boolean(file && file.type && file.type.startsWith("video/"));
-}
-
-function pickVideoFromDeviceCamera() {
-  videoFileInput.setAttribute("capture", "user");
-  videoFileInput.click();
-}
-
 function clearDraftVideoAsset() {
   currentDraftVideoAsset = clearAsset(currentDraftVideoAsset);
   hasDraftVideo = false;
@@ -1258,17 +1275,6 @@ function applyRecordedVideoAsset(asset) {
     isRecorderOpenedFromPhotoProfile = false;
   }
   closeRecorder();
-}
-
-function handleVideoFileSelection(file) {
-  if (!isValidVideoFile(file)) return;
-  clearDraftVideoAsset();
-  currentDraftVideoAsset = createDraftAsset("video", file, {
-    mimeType: file.type,
-    source: "camera"
-  });
-  hasDraftVideo = true;
-  applyRecordedVideoAsset(currentDraftVideoAsset);
 }
 
 function resetRecordSurface() {
@@ -1483,10 +1489,6 @@ async function openRecorder() {
   stopDesignPreview();
   hidePhotoPicker();
   hideDesignExit();
-  if (isIOSDevice()) {
-    pickVideoFromDeviceCamera();
-    return;
-  }
   resetRecordSurface();
   setRecorderMode("idle");
   clearDraftVideoAsset();
@@ -1578,7 +1580,8 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
+        needsIosRotationFix: isIPhoneSafari()
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
@@ -2251,14 +2254,6 @@ photoFileInput.addEventListener("change", () => {
   }
   photoFileInput.removeAttribute("capture");
   photoFileInput.value = "";
-});
-videoFileInput.addEventListener("change", () => {
-  const [file] = videoFileInput.files || [];
-  if (file) {
-    handleVideoFileSelection(file);
-  }
-  videoFileInput.removeAttribute("capture");
-  videoFileInput.value = "";
 });
 photoProfileText.addEventListener("click", openPhotoTextCard);
 photoProfileDelete.addEventListener("click", deleteProfilePhoto);
