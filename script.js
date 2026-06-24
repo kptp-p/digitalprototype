@@ -45,6 +45,7 @@ const photoGalleryCropWindow = document.querySelector("#photoGalleryCropWindow")
 const cancelPhotoGallery = document.querySelector("#cancelPhotoGallery");
 const confirmPhotoGallery = document.querySelector("#confirmPhotoGallery");
 const photoFileInput = document.querySelector("#photoFileInput");
+const videoFileInput = document.querySelector("#videoFileInput");
 const photoCameraScreen = document.querySelector("#photoCameraScreen");
 const photoCameraFrame = document.querySelector("#photoCameraFrame");
 const photoCameraPreview = document.querySelector("#photoCameraPreview");
@@ -1218,6 +1219,15 @@ function handlePhotoFileSelection(file) {
   openPhotoGalleryEditor();
 }
 
+function isValidVideoFile(file) {
+  return Boolean(file && file.type && file.type.startsWith("video/"));
+}
+
+function pickVideoFromDeviceCamera() {
+  videoFileInput.setAttribute("capture", "user");
+  videoFileInput.click();
+}
+
 function clearDraftVideoAsset() {
   currentDraftVideoAsset = clearAsset(currentDraftVideoAsset);
   hasDraftVideo = false;
@@ -1226,6 +1236,39 @@ function clearDraftVideoAsset() {
 function resetDraftVideoAsset() {
   currentDraftVideoAsset = createEmptyMediaAsset("video");
   hasDraftVideo = false;
+}
+
+function applyRecordedVideoAsset(asset) {
+  const shouldReturnFromPhotoProfile = isRecorderOpenedFromPhotoProfile;
+  clearEcardVideo();
+  confirmDraftAsset("video", asset);
+  if (shouldReturnFromPhotoProfile) {
+    disposeAssetUrl(state.ecardMedia.photo);
+    state.ecardMedia.photo = createEmptyMediaAsset("photo");
+    syncRuntimePhotoState();
+    photoProfileReadySelection = "video-request";
+  }
+  resetDraftVideoAsset();
+  syncRuntimeVideoState();
+  state.selectedDesignStyle = null;
+  setDesignMediaMode("video");
+  syncDesignVideo();
+  if (shouldReturnFromPhotoProfile) {
+    closePhotoProfileScreen();
+    isRecorderOpenedFromPhotoProfile = false;
+  }
+  closeRecorder();
+}
+
+function handleVideoFileSelection(file) {
+  if (!isValidVideoFile(file)) return;
+  clearDraftVideoAsset();
+  currentDraftVideoAsset = createDraftAsset("video", file, {
+    mimeType: file.type,
+    source: "camera"
+  });
+  hasDraftVideo = true;
+  applyRecordedVideoAsset(currentDraftVideoAsset);
 }
 
 function resetRecordSurface() {
@@ -1440,6 +1483,10 @@ async function openRecorder() {
   stopDesignPreview();
   hidePhotoPicker();
   hideDesignExit();
+  if (isIOSDevice()) {
+    pickVideoFromDeviceCamera();
+    return;
+  }
   resetRecordSurface();
   setRecorderMode("idle");
   clearDraftVideoAsset();
@@ -1586,25 +1633,7 @@ function deleteDraftRecording() {
 
 function confirmRecording() {
   if (!hasDraftVideo || !currentDraftVideoAsset.url) return;
-  const shouldReturnFromPhotoProfile = isRecorderOpenedFromPhotoProfile;
-  clearEcardVideo();
-  confirmDraftAsset("video", currentDraftVideoAsset);
-  if (shouldReturnFromPhotoProfile) {
-    disposeAssetUrl(state.ecardMedia.photo);
-    state.ecardMedia.photo = createEmptyMediaAsset("photo");
-    syncRuntimePhotoState();
-    photoProfileReadySelection = "video-request";
-  }
-  resetDraftVideoAsset();
-  syncRuntimeVideoState();
-  state.selectedDesignStyle = null;
-  setDesignMediaMode("video");
-  syncDesignVideo();
-  if (shouldReturnFromPhotoProfile) {
-    closePhotoProfileScreen();
-    isRecorderOpenedFromPhotoProfile = false;
-  }
-  closeRecorder();
+  applyRecordedVideoAsset(currentDraftVideoAsset);
 }
 
 function clearEcardVideo() {
@@ -2222,6 +2251,14 @@ photoFileInput.addEventListener("change", () => {
   }
   photoFileInput.removeAttribute("capture");
   photoFileInput.value = "";
+});
+videoFileInput.addEventListener("change", () => {
+  const [file] = videoFileInput.files || [];
+  if (file) {
+    handleVideoFileSelection(file);
+  }
+  videoFileInput.removeAttribute("capture");
+  videoFileInput.value = "";
 });
 photoProfileText.addEventListener("click", openPhotoTextCard);
 photoProfileDelete.addEventListener("click", deleteProfilePhoto);
