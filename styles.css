@@ -489,6 +489,12 @@ button {
   font-size: 11px;
 }
 
+@supports (-webkit-touch-callout: none) {
+  .ecard-banner em {
+    transform: translateY(6px);
+  }
+}
+
 .banner-art {
   width: 92px;
   height: 92px;
