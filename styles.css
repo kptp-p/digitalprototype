@@ -35,6 +35,9 @@ input {
 button {
   border: 0;
   cursor: pointer;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .phone {
@@ -478,6 +481,7 @@ button {
   place-items: center;
   height: 20px;
   margin-top: auto;
+  transform: translateY(3px);
   padding: 0 13px;
   border-radius: 10px;
   background: var(--accent);
