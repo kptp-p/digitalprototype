@@ -305,7 +305,13 @@ function syncPlaybackVideoOrientation(video, meta = {}) {
   if (!video) return;
   const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
-  video.style.transform = shouldCorrectRotation ? "rotate(-90deg) scale(1.78)" : "";
+  if (shouldCorrectRotation) {
+    video.style.setProperty("transform", "rotate(-90deg) scale(1.78)", "important");
+    video.style.setProperty("transform-origin", "center center", "important");
+  } else {
+    video.style.removeProperty("transform");
+    video.style.removeProperty("transform-origin");
+  }
 }
 
 function setVideoElementSource(video, url, muted = false, meta = {}) {
@@ -320,7 +326,8 @@ function setVideoElementSource(video, url, muted = false, meta = {}) {
     video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
   }
   video.classList.remove("is-rotated-ios-video");
-  video.style.transform = "";
+  video.style.removeProperty("transform");
+  video.style.removeProperty("transform-origin");
   if (url) {
     video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
     video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
