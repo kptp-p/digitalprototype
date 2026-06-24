@@ -1187,6 +1187,10 @@ textarea {
   background: #111;
 }
 
+.is-rotated-ios-video {
+  transform: rotate(90deg);
+}
+
 .media-circle-video,
 .preview-media-video,
 .template-video-preview {

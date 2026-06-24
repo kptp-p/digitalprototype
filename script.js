@@ -268,7 +268,9 @@ function createDraftAsset(kind, blob, meta = {}) {
     url: URL.createObjectURL(blob),
     mimeType: blob.type || meta.mimeType || "",
     durationMs: meta.durationMs || 0,
-    source: meta.source || "camera"
+    source: meta.source || "camera",
+    captureWidth: meta.captureWidth || 0,
+    captureHeight: meta.captureHeight || 0
   };
 }
 
@@ -293,17 +295,42 @@ function detachVideoElement(video) {
   video.load();
 }
 
-function setVideoElementSource(video, url, muted = false) {
+function isIPhoneSafari() {
+  const ua = navigator.userAgent || "";
+  return /iPhone/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+}
+
+function syncPlaybackVideoOrientation(video, meta = {}) {
+  if (!video) return;
+  const captureWidth = Number(meta.captureWidth) || 0;
+  const captureHeight = Number(meta.captureHeight) || 0;
+  const shouldCorrectRotation =
+    isIPhoneSafari()
+    && captureHeight > captureWidth
+    && video.videoWidth > video.videoHeight;
+  video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
+}
+
+function setVideoElementSource(video, url, muted = false, meta = {}) {
   if (!video) return;
   video.pause();
   video.srcObject = null;
+  video.autoplay = false;
   video.muted = muted;
   video.controls = false;
+  video.removeAttribute("autoplay");
+  if (video._orientationSyncHandler) {
+    video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
+  }
+  video.classList.remove("is-rotated-ios-video");
   if (url) {
+    video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
+    video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
     return;
   }
+  video._orientationSyncHandler = null;
   video.removeAttribute("src");
   video.load();
 }
@@ -621,6 +648,7 @@ let photoProfileTick = null;
 let activeMediaStream = null;
 let availableVideoDevices = [];
 let preferredVideoDeviceId = null;
+let activeVideoCaptureSettings = {};
 let activeRecorder = null;
 let pendingRecordedChunks = [];
 let currentRecordStartTime = 0;
@@ -896,6 +924,7 @@ async function openCameraStream(deviceId = preferredVideoDeviceId) {
   }
   const [track] = activeMediaStream.getVideoTracks();
   const settings = track?.getSettings?.() || {};
+  activeVideoCaptureSettings = settings;
   preferredVideoDeviceId = settings.deviceId || deviceId || preferredVideoDeviceId;
   prepareLiveVideoElement(recordPreviewVideo, true);
   recordPreviewVideo.srcObject = activeMediaStream;
@@ -1482,10 +1511,12 @@ async function startRecording() {
         return;
       }
       currentDraftVideoAsset = createDraftAsset("video", blob, {
-        durationMs: Math.max(0, Date.now() - currentRecordStartTime)
+        durationMs: Math.max(0, Date.now() - currentRecordStartTime),
+        captureWidth: Number(activeVideoCaptureSettings.width) || 0,
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0
       });
       hasDraftVideo = true;
-      setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false);
+      setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
       recordTimer.textContent = "0:00";
       setRecordProgress(1);
       setRecorderMode("recorded");
@@ -1829,7 +1860,7 @@ function syncPreviewContent() {
   previewMediaCircle.classList.toggle("is-video", variant === "video");
   previewMediaCircle.classList.toggle("has-video", variant === "video" && Boolean(videoUrl));
   previewMediaCircle.style.setProperty("--preview-media-asset", "none");
-  setVideoElementSource(previewVideoPlayer, variant === "video" ? videoUrl : "");
+  setVideoElementSource(previewVideoPlayer, variant === "video" ? videoUrl : "", false, state.ecardMedia.video);
   previewPlay.hidden = !(variant === "video" && videoUrl);
   previewScreen.style.setProperty("--preview-card-bg", state.designColor);
   previewScreen.style.setProperty("--preview-photo-asset", `url("${photoUrl}")`);
@@ -1982,8 +2013,8 @@ function syncDesignVideo() {
   mediaCircle.classList.toggle("is-ready", isReady);
   mediaCircle.classList.toggle("is-photo-mode", isPhotoMode);
   stopDesignPreview(false);
-  setVideoElementSource(designVideoPreview, hasVideo ? videoUrl : "");
-  setVideoElementSource(templateVideoPreview, hasVideo ? videoUrl : "", true);
+  setVideoElementSource(designVideoPreview, hasVideo ? videoUrl : "", false, state.ecardMedia.video);
+  setVideoElementSource(templateVideoPreview, hasVideo ? videoUrl : "", true, state.ecardMedia.video);
   templateVideo.classList.toggle("has-video", hasVideo);
   templateVideo.classList.toggle("is-loading", false);
   templateVideo.classList.toggle("is-retry", false);
