@@ -317,6 +317,26 @@ function shouldUseNormalizedVideoPreview(meta = {}) {
   return isIOSDevice() && meta?.kind === "video" && meta?.source === "camera";
 }
 
+function drawNormalizedVideoFrame({
+  context,
+  source,
+  sourceWidth,
+  sourceHeight,
+  targetWidth,
+  targetHeight
+}) {
+  if (!context || !sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
+  context.clearRect(0, 0, targetWidth, targetHeight);
+  context.save();
+  context.translate(targetWidth / 2, targetHeight / 2);
+  context.rotate(-Math.PI / 2);
+  const scale = Math.max(targetWidth / sourceHeight, targetHeight / sourceWidth);
+  const drawWidth = sourceWidth * scale;
+  const drawHeight = sourceHeight * scale;
+  context.drawImage(source, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+  context.restore();
+}
+
 function stopNormalizedVideoCanvas(video) {
   if (video?._normalizedCanvasFrame) {
     window.cancelAnimationFrame(video._normalizedCanvasFrame);
@@ -341,15 +361,14 @@ function renderNormalizedVideoCanvas(video) {
   }
   const context = canvas.getContext("2d");
   if (!context) return;
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.save();
-  context.translate(canvas.width / 2, canvas.height / 2);
-  context.rotate(-Math.PI / 2);
-  const scale = Math.max(canvas.width / sourceHeight, canvas.height / sourceWidth);
-  const drawWidth = sourceWidth * scale;
-  const drawHeight = sourceHeight * scale;
-  context.drawImage(video, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
-  context.restore();
+  drawNormalizedVideoFrame({
+    context,
+    source: video,
+    sourceWidth,
+    sourceHeight,
+    targetWidth: canvas.width,
+    targetHeight: canvas.height
+  });
 }
 
 function scheduleNormalizedVideoCanvas(video) {
@@ -722,6 +741,9 @@ let availableVideoDevices = [];
 let preferredVideoDeviceId = null;
 let activeVideoCaptureSettings = {};
 let activeRecorder = null;
+let activeRecordingStream = null;
+let activeRecordingCanvas = null;
+let activeRecordingCanvasFrame = null;
 let pendingRecordedChunks = [];
 let shouldDiscardCurrentRecording = false;
 let currentRecordStartTime = 0;
@@ -947,11 +969,80 @@ function buildVideoConstraintAttempts(size, deviceId) {
   return attempts;
 }
 
+function stopRecordingCanvasPipeline() {
+  if (activeRecordingCanvasFrame) {
+    window.cancelAnimationFrame(activeRecordingCanvasFrame);
+    activeRecordingCanvasFrame = null;
+  }
+  if (activeRecordingStream && activeRecordingStream !== activeMediaStream) {
+    stopStream(activeRecordingStream);
+  }
+  activeRecordingStream = null;
+  if (activeRecordingCanvas) {
+    activeRecordingCanvas.width = 0;
+    activeRecordingCanvas.height = 0;
+  }
+  activeRecordingCanvas = null;
+}
+
+function startRecordingCanvasPipeline(sourceVideo, canvas, sourceStream, fps = 30) {
+  if (!canvas?.captureStream || !sourceVideo || !sourceStream) return null;
+  const sourceWidth = sourceVideo.videoWidth || Number(activeVideoCaptureSettings.width) || 0;
+  const sourceHeight = sourceVideo.videoHeight || Number(activeVideoCaptureSettings.height) || 0;
+  if (!sourceWidth || !sourceHeight) return null;
+  canvas.width = Math.max(1, sourceHeight);
+  canvas.height = Math.max(1, sourceWidth);
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  const drawFrame = () => {
+    drawNormalizedVideoFrame({
+      context,
+      source: sourceVideo,
+      sourceWidth,
+      sourceHeight,
+      targetWidth: canvas.width,
+      targetHeight: canvas.height
+    });
+    activeRecordingCanvasFrame = window.requestAnimationFrame(drawFrame);
+  };
+
+  drawFrame();
+
+  const canvasStream = canvas.captureStream(fps);
+  const composedStream = new MediaStream();
+  canvasStream.getVideoTracks().forEach((track) => composedStream.addTrack(track));
+  sourceStream.getAudioTracks().forEach((track) => composedStream.addTrack(track));
+  if (!composedStream.getVideoTracks().length) {
+    stopStream(canvasStream);
+    if (activeRecordingCanvasFrame) {
+      window.cancelAnimationFrame(activeRecordingCanvasFrame);
+      activeRecordingCanvasFrame = null;
+    }
+    return null;
+  }
+  return composedStream;
+}
+
+function buildRecordingStream(sourceStream) {
+  stopRecordingCanvasPipeline();
+  if (!isIOSDevice()) {
+    activeRecordingStream = sourceStream;
+    return sourceStream;
+  }
+  const canvas = document.createElement("canvas");
+  const normalizedStream = startRecordingCanvasPipeline(recordPreviewVideo, canvas, sourceStream);
+  activeRecordingCanvas = canvas;
+  activeRecordingStream = normalizedStream || sourceStream;
+  return activeRecordingStream;
+}
+
 function resetVideoRecordingSession() {
   if (activeRecorder?.state === "recording") {
     activeRecorder.stop();
   }
   activeRecorder = null;
+  stopRecordingCanvasPipeline();
   stopStream(activeMediaStream);
   activeMediaStream = null;
   activeVideoCaptureSettings = {};
@@ -1632,8 +1723,9 @@ async function startRecording() {
       recordPreviewVideo.srcObject = activeMediaStream;
     }
     await recordPreviewVideo.play().catch(() => {});
+    const recordingStream = buildRecordingStream(activeMediaStream);
     pendingRecordedChunks = [];
-    activeRecorder = new MediaRecorder(activeMediaStream, { mimeType });
+    activeRecorder = new MediaRecorder(recordingStream, { mimeType });
     activeRecorder.addEventListener("dataavailable", (event) => {
       if (event.data && event.data.size > 0) {
         pendingRecordedChunks.push(event.data);
@@ -1662,6 +1754,7 @@ async function startRecording() {
       recordTimer.textContent = "0:00";
       setRecordProgress(1);
       setRecorderMode("recorded");
+      stopRecordingCanvasPipeline();
     }, { once: true });
     currentRecordStartTime = Date.now();
     activeRecorder.start();
