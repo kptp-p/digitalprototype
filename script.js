@@ -281,7 +281,8 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0
+    captureHeight: meta.captureHeight || 0,
+    orientationNormalized: Boolean(meta.orientationNormalized)
   };
 }
 
@@ -314,7 +315,7 @@ const normalizedVideoCanvasMap = new Map([
 ]);
 
 function shouldUseNormalizedVideoPreview(meta = {}) {
-  return isIOSDevice() && meta?.kind === "video" && meta?.source === "camera";
+  return isIOSDevice() && meta?.kind === "video" && meta?.source === "camera" && !meta?.orientationNormalized;
 }
 
 function drawNormalizedVideoFrame({
@@ -323,13 +324,14 @@ function drawNormalizedVideoFrame({
   sourceWidth,
   sourceHeight,
   targetWidth,
-  targetHeight
+  targetHeight,
+  rotationDirection = -1
 }) {
   if (!context || !sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
   context.clearRect(0, 0, targetWidth, targetHeight);
   context.save();
   context.translate(targetWidth / 2, targetHeight / 2);
-  context.rotate(-Math.PI / 2);
+  context.rotate(rotationDirection * Math.PI / 2);
   const scale = Math.max(targetWidth / sourceHeight, targetHeight / sourceWidth);
   const drawWidth = sourceWidth * scale;
   const drawHeight = sourceHeight * scale;
@@ -424,6 +426,32 @@ function setVideoElementSource(video, url, muted = false) {
   }
   video.removeAttribute("src");
   video.load();
+}
+
+function waitForVideoEvent(video, eventName) {
+  return new Promise((resolve) => {
+    if (!video) {
+      resolve();
+      return;
+    }
+    const timeout = window.setTimeout(resolve, 700);
+    video.addEventListener(eventName, () => {
+      window.clearTimeout(timeout);
+      resolve();
+    }, { once: true });
+  });
+}
+
+async function showVideoFirstFrame(video) {
+  if (!video) return;
+  if (video.readyState < 1) {
+    await waitForVideoEvent(video, "loadedmetadata");
+  }
+  if (video.readyState < 2) {
+    await waitForVideoEvent(video, "loadeddata");
+  }
+  video.currentTime = 0;
+  video.pause();
 }
 
 function syncRuntimeVideoState() {
@@ -1714,9 +1742,6 @@ async function startRecording() {
   resetRecordSurface();
   shouldDiscardCurrentRecording = false;
   try {
-    if (isIOSDevice()) {
-      await openCameraStream(preferredVideoDeviceId);
-    }
     const mimeType = await ensureRecorderReady();
     if (recordPreviewVideo.srcObject !== activeMediaStream) {
       prepareLiveVideoElement(recordPreviewVideo, true);
@@ -1731,7 +1756,7 @@ async function startRecording() {
         pendingRecordedChunks.push(event.data);
       }
     });
-    activeRecorder.addEventListener("stop", () => {
+    activeRecorder.addEventListener("stop", async () => {
       if (shouldDiscardCurrentRecording) {
         pendingRecordedChunks = [];
         shouldDiscardCurrentRecording = false;
@@ -1747,10 +1772,12 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
+        orientationNormalized: activeRecordingStream !== activeMediaStream
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
+      await showVideoFirstFrame(recordPreviewVideo).catch(() => {});
       recordTimer.textContent = "0:00";
       setRecordProgress(1);
       setRecorderMode("recorded");
