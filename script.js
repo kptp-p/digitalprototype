@@ -116,9 +116,14 @@ const clearText = document.querySelector("#clearText");
 const goodsTotal = document.querySelector("#goodsTotal");
 const checkoutTotal = document.querySelector("#checkoutTotal");
 const saveText = document.querySelector("#saveText");
+const phoneShell = document.querySelector(".phone");
 
 if (recordScreen && recordScreen.parentElement !== document.body) {
   document.body.appendChild(recordScreen);
+}
+
+if (photoPickerSheet && phoneShell && photoPickerSheet.parentElement !== phoneShell) {
+  phoneShell.appendChild(photoPickerSheet);
 }
 
 const ANIMATION_MS = 260;

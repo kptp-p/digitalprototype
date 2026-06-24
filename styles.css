@@ -1683,9 +1683,9 @@ textarea {
 }
 
 .photo-picker-sheet {
-  position: fixed;
-  left: calc(50% + var(--phone-safe-left, 0px));
-  bottom: 118px;
+  position: absolute;
+  left: 50%;
+  bottom: 25px;
   z-index: 29;
   width: 355px;
   transform: translateX(-50%) translateY(24px);
