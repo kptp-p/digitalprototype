@@ -305,11 +305,7 @@ function isIPhoneSafari() {
 
 function syncPlaybackVideoOrientation(video, meta = {}) {
   if (!video) return;
-  const captureWidth = Number(meta.captureWidth) || 0;
-  const captureHeight = Number(meta.captureHeight) || 0;
-  const shouldCorrectRotation =
-    isIPhoneSafari()
-    && captureHeight > captureWidth;
+  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
   if (shouldCorrectRotation) {
     video.style.setProperty("transform", "rotate(-90deg) scale(1.78)", "important");
@@ -1535,7 +1531,8 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
+        needsIosRotationFix: isIPhoneSafari()
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
