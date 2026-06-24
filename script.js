@@ -1210,6 +1210,12 @@ function showPhotoAssetFlow(source) {
 }
 
 function pickPhotoFromGallery() {
+  photoFileInput.removeAttribute("capture");
+  photoFileInput.click();
+}
+
+function pickPhotoFromDeviceCamera() {
+  photoFileInput.setAttribute("capture", "user");
   photoFileInput.click();
 }
 
@@ -1220,13 +1226,14 @@ function isValidPhotoFile(file) {
 function handlePhotoFileSelection(file) {
   if (!isValidPhotoFile(file)) return;
   clearDraftPhotoAsset();
+  const source = draftPhotoSource === "camera" ? "camera" : "gallery";
   selectedPhotoFile = file;
   currentDraftPhotoAsset = createDraftAsset("photo", file, {
     mimeType: file.type,
-    source: "gallery"
+    source
   });
   hasDraftPhoto = true;
-  draftPhotoSource = "gallery";
+  draftPhotoSource = source;
   openPhotoGalleryEditor();
 }
 
@@ -1636,6 +1643,10 @@ async function openPhotoCamera() {
   hideDesignExit();
   draftPhotoSource = "camera";
   clearDraftPhotoAsset();
+  if (isMobileCameraDevice()) {
+    pickPhotoFromDeviceCamera();
+    return;
+  }
   resetPhotoCameraView();
   photoCameraScreen.hidden = false;
   requestAnimationFrame(() => photoCameraScreen.classList.add("is-visible"));
@@ -2229,6 +2240,7 @@ photoFileInput.addEventListener("change", () => {
   } else {
     cancelPhotoGallerySelection();
   }
+  photoFileInput.removeAttribute("capture");
   photoFileInput.value = "";
 });
 photoProfileText.addEventListener("click", openPhotoTextCard);
