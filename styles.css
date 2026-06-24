@@ -1354,6 +1354,9 @@ textarea {
   display: none;
   pointer-events: none;
   transform: rotate(-90deg);
+  -webkit-transform-origin: 50% 50%;
+  transform-origin: 50% 50%;
+  transform-box: border-box;
 }
 
 .design-progress circle {
@@ -2017,6 +2020,9 @@ textarea {
   display: none;
   pointer-events: none;
   transform: rotate(-90deg);
+  -webkit-transform-origin: 50% 50%;
+  transform-origin: 50% 50%;
+  transform-box: border-box;
 }
 
 .preview-progress circle {
