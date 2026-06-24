@@ -277,8 +277,7 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0,
-    needsIosRotationFix: Boolean(meta.needsIosRotationFix)
+    captureHeight: meta.captureHeight || 0
   };
 }
 
@@ -303,24 +302,6 @@ function detachVideoElement(video) {
   video.load();
 }
 
-function isIPhoneSafari() {
-  const ua = navigator.userAgent || "";
-  return /iPhone/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
-}
-
-function syncPlaybackVideoOrientation(video, meta = {}) {
-  if (!video) return;
-  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
-  video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
-  if (shouldCorrectRotation) {
-    video.style.setProperty("transform", "rotate(-90deg) scale(1.78)", "important");
-    video.style.setProperty("transform-origin", "center center", "important");
-  } else {
-    video.style.removeProperty("transform");
-    video.style.removeProperty("transform-origin");
-  }
-}
-
 function setVideoElementSource(video, url, muted = false) {
   if (!video) return;
   video.pause();
@@ -329,26 +310,11 @@ function setVideoElementSource(video, url, muted = false) {
   video.muted = muted;
   video.controls = false;
   video.removeAttribute("autoplay");
-  if (video._orientationSyncHandler) {
-    video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
-  }
-  video.classList.remove("is-rotated-ios-video");
-  video.style.removeProperty("transform");
-  video.style.removeProperty("transform-origin");
   if (url) {
-    const meta = arguments[3] || {};
-    video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
-    video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
-    requestAnimationFrame(() => {
-      if (video.readyState >= 1) {
-        syncPlaybackVideoOrientation(video, meta);
-      }
-    });
     return;
   }
-  video._orientationSyncHandler = null;
   video.removeAttribute("src");
   video.load();
 }
@@ -1565,8 +1531,7 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
-        needsIosRotationFix: isIPhoneSafari()
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
