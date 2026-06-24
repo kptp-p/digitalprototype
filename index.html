@@ -154,6 +154,7 @@
               <circle cx="146" cy="146" r="138" />
             </svg>
             <video class="media-circle-video" id="designVideoPreview" playsinline preload="metadata"></video>
+            <canvas class="normalized-video-canvas" id="designVideoPreviewCanvas" aria-hidden="true"></canvas>
             <svg class="camera-mark" viewBox="170 302 35 34" aria-hidden="true">
               <path d="M195.31 302.333C200.77 302.333 204.167 306.187 204.167 311.642V326.358C204.167 331.813 200.77 335.667 195.31 335.667H179.69C174.23 335.667 170.833 331.813 170.833 326.358V311.642C170.833 306.187 174.246 302.333 179.69 302.333H195.31ZM187.501 312.334C183.819 312.334 180.834 315.318 180.834 319C180.834 322.682 183.818 325.667 187.501 325.667C191.183 325.667 194.167 322.682 194.167 319C194.167 315.318 191.183 312.334 187.501 312.334ZM197 307C195.895 307 195 307.895 195 309C195 310.105 195.895 311 197 311C198.105 311 199 310.105 199 309C199 307.895 198.105 307 197 307Z" />
             </svg>
@@ -203,6 +204,7 @@
               <button class="template-card template-gift" type="button" data-style-id="gift" aria-label="Готовый стиль gift"></button>
               <button class="template-card template-video is-selected" type="button" id="openRecorderTemplate" aria-label="Видеосообщение">
                 <video class="template-video-preview" id="templateVideoPreview" playsinline preload="metadata" muted></video>
+                <canvas class="normalized-video-canvas template-video-preview-canvas" id="templateVideoPreviewCanvas" aria-hidden="true"></canvas>
                 <span class="template-remove" id="templateRemove" hidden aria-hidden="true">
                   <img class="template-remove-img" src="assets/template-loading-remove.svg" alt="" />
                   <img class="template-retry-img" src="assets/template-retry.svg" alt="" />
@@ -268,6 +270,7 @@
             <circle cx="146" cy="146" r="138" />
           </svg>
           <video class="record-preview-video" id="recordPreviewVideo" playsinline autoplay preload="metadata" muted></video>
+          <canvas class="normalized-video-canvas record-preview-video-canvas" id="recordPreviewCanvas" aria-hidden="true"></canvas>
           <button class="record-play" type="button" id="recordPlay" aria-label="Предпросмотр" hidden>
             <svg viewBox="170 327 34 38" aria-hidden="true">
               <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />
@@ -542,7 +545,8 @@
                     <svg class="preview-progress" viewBox="0 0 292 292" aria-hidden="true">
                       <circle cx="146" cy="146" r="138" />
                     </svg>
-                    <video class="preview-media-video" id="previewVideoPlayer" playsinline preload="metadata"></video>
+	                    <video class="preview-media-video" id="previewVideoPlayer" playsinline preload="metadata"></video>
+	                    <canvas class="normalized-video-canvas preview-media-video-canvas" id="previewVideoCanvas" aria-hidden="true"></canvas>
                     <span class="preview-play" aria-hidden="true">
                       <svg viewBox="170 327 34 38">
                         <path d="M176.229 327.452C173.858 326.097 170.908 327.809 170.908 330.54V360.961C170.908 363.692 173.858 365.404 176.229 364.049L202.848 348.839C205.237 347.473 205.237 344.028 202.848 342.663L176.229 327.452Z" />

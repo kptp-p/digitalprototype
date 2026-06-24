@@ -11,11 +11,13 @@ const recordTimer = document.querySelector("#recordTimer");
 const recordMain = document.querySelector("#recordMain");
 const recordPlay = document.querySelector("#recordPlay");
 const recordPreviewVideo = document.querySelector("#recordPreviewVideo");
+const recordPreviewCanvas = document.querySelector("#recordPreviewCanvas");
 const recordError = document.querySelector("#recordError");
 const flipCamera = document.querySelector("#flipCamera");
 const deleteRecording = document.querySelector("#deleteRecording");
 const designPlay = document.querySelector("#designPlay");
 const designVideoPreview = document.querySelector("#designVideoPreview");
+const designVideoPreviewCanvas = document.querySelector("#designVideoPreviewCanvas");
 const designCard = document.querySelector(".design-card");
 const designStylePreview = document.querySelector("#designStylePreview");
 const designStylePreviewText = document.querySelector(".design-style-preview-text");
@@ -28,6 +30,7 @@ const designColorButtons = document.querySelectorAll(".design-swatch");
 const designPreviewButton = document.querySelector("#designPreviewButton");
 const templateVideo = document.querySelector("#openRecorderTemplate");
 const templateVideoPreview = document.querySelector("#templateVideoPreview");
+const templateVideoPreviewCanvas = document.querySelector("#templateVideoPreviewCanvas");
 const templatePhoto = document.querySelector("#openPhotoTemplate");
 const recordNewTemplate = document.querySelector("#recordNewTemplate");
 const templateRemove = document.querySelector("#templateRemove");
@@ -104,6 +107,7 @@ const previewFrontPhoto = document.querySelector("#previewFrontPhoto");
 const previewFrontStyle = document.querySelector("#previewFrontStyle");
 const previewMediaCircle = document.querySelector("#previewMediaCircle");
 const previewVideoPlayer = document.querySelector("#previewVideoPlayer");
+const previewVideoCanvas = document.querySelector("#previewVideoCanvas");
 const previewPlay = previewMediaCircle.querySelector(".preview-play");
 const previewStyleCard = document.querySelector("#previewStyleCard");
 const previewTextMessage = document.querySelector("#previewTextMessage");
@@ -277,8 +281,7 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0,
-    needsIosRotationFix: Boolean(meta.needsIosRotationFix)
+    captureHeight: meta.captureHeight || 0
   };
 }
 
@@ -303,21 +306,86 @@ function detachVideoElement(video) {
   video.load();
 }
 
-function isIPhoneSafari() {
-  const ua = navigator.userAgent || "";
-  return /iPhone/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+const normalizedVideoCanvasMap = new Map([
+  [recordPreviewVideo, recordPreviewCanvas],
+  [designVideoPreview, designVideoPreviewCanvas],
+  [templateVideoPreview, templateVideoPreviewCanvas],
+  [previewVideoPlayer, previewVideoCanvas]
+]);
+
+function shouldUseNormalizedVideoPreview(meta = {}) {
+  return isIOSDevice() && meta?.kind === "video" && meta?.source === "camera";
 }
 
-function syncPlaybackVideoOrientation(video, meta = {}) {
-  if (!video) return;
-  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
-  if (shouldCorrectRotation) {
-    video.style.setProperty("transform", "rotate(270deg) scale(1.78)", "important");
-    video.style.setProperty("transform-origin", "center center", "important");
+function stopNormalizedVideoCanvas(video) {
+  if (video?._normalizedCanvasFrame) {
+    window.cancelAnimationFrame(video._normalizedCanvasFrame);
+    video._normalizedCanvasFrame = null;
+  }
+}
+
+function renderNormalizedVideoCanvas(video) {
+  const canvas = normalizedVideoCanvasMap.get(video);
+  if (!canvas || !canvas.classList.contains("is-active")) return;
+  const sourceWidth = video.videoWidth;
+  const sourceHeight = video.videoHeight;
+  const cssWidth = canvas.clientWidth;
+  const cssHeight = canvas.clientHeight;
+  if (!sourceWidth || !sourceHeight || !cssWidth || !cssHeight) return;
+  const ratio = window.devicePixelRatio || 1;
+  const targetWidth = Math.max(1, Math.round(cssWidth * ratio));
+  const targetHeight = Math.max(1, Math.round(cssHeight * ratio));
+  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+  }
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.translate(canvas.width / 2, canvas.height / 2);
+  context.rotate(-Math.PI / 2);
+  const scale = Math.max(canvas.width / sourceHeight, canvas.height / sourceWidth);
+  const drawWidth = sourceWidth * scale;
+  const drawHeight = sourceHeight * scale;
+  context.drawImage(video, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+  context.restore();
+}
+
+function scheduleNormalizedVideoCanvas(video) {
+  stopNormalizedVideoCanvas(video);
+  const tick = () => {
+    renderNormalizedVideoCanvas(video);
+    if (!video.paused && !video.ended) {
+      video._normalizedCanvasFrame = window.requestAnimationFrame(tick);
+      return;
+    }
+    video._normalizedCanvasFrame = null;
+  };
+  video._normalizedCanvasFrame = window.requestAnimationFrame(tick);
+}
+
+function syncNormalizedVideoPreview(video, enabled) {
+  const canvas = normalizedVideoCanvasMap.get(video);
+  if (!canvas) return;
+  canvas.classList.toggle("is-active", enabled);
+  video.classList.toggle("is-normalized-preview-source", enabled);
+  if (!enabled) {
+    stopNormalizedVideoCanvas(video);
+    const context = canvas.getContext("2d");
+    if (context) context.clearRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  video.style.removeProperty("transform");
-  video.style.removeProperty("transform-origin");
+  renderNormalizedVideoCanvas(video);
+}
+
+function initializeNormalizedVideoPreview(video) {
+  if (!video || video.dataset.normalizedPreviewInit === "true") return;
+  video.dataset.normalizedPreviewInit = "true";
+  ["loadedmetadata", "seeking", "pause", "ended"].forEach((eventName) => {
+    video.addEventListener(eventName, () => renderNormalizedVideoCanvas(video));
+  });
+  video.addEventListener("play", () => scheduleNormalizedVideoCanvas(video));
 }
 
 function setVideoElementSource(video, url, muted = false) {
@@ -328,20 +396,13 @@ function setVideoElementSource(video, url, muted = false) {
   video.muted = muted;
   video.controls = false;
   video.removeAttribute("autoplay");
-  if (video._orientationSyncHandler) {
-    video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
-  }
-  video.style.removeProperty("transform");
-  video.style.removeProperty("transform-origin");
+  const meta = arguments[3] || {};
+  syncNormalizedVideoPreview(video, Boolean(url) && shouldUseNormalizedVideoPreview(meta));
   if (url) {
-    const meta = arguments[3] || {};
-    video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
-    video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
     video.src = url;
     video.load();
     return;
   }
-  video._orientationSyncHandler = null;
   video.removeAttribute("src");
   video.load();
 }
@@ -868,21 +929,39 @@ function buildUserCameraConstraints(size) {
   const constraints = {
     facingMode: isMobileCameraDevice() ? { ideal: "user" } : "user"
   };
+  if (isIOSDevice()) {
+    return constraints;
+  }
   if (size?.width) constraints.width = { ideal: size.width };
   if (size?.height) constraints.height = { ideal: size.height };
   return constraints;
 }
 
 function buildVideoConstraintAttempts(size, deviceId) {
-  const attempts = [buildUserCameraConstraints(size), true];
+  const attempts = isIOSDevice()
+    ? [buildUserCameraConstraints(size), { facingMode: { ideal: "user" } }, true]
+    : [buildUserCameraConstraints(size), true];
   if (deviceId) {
     attempts.push({ deviceId: { exact: deviceId } });
   }
   return attempts;
 }
 
+function resetVideoRecordingSession() {
+  if (activeRecorder?.state === "recording") {
+    activeRecorder.stop();
+  }
+  activeRecorder = null;
+  stopStream(activeMediaStream);
+  activeMediaStream = null;
+  activeVideoCaptureSettings = {};
+  detachVideoElement(recordPreviewVideo);
+  recordScreen.classList.remove("has-live-preview");
+}
+
 function prepareLiveVideoElement(video, muted = true) {
   if (!video) return;
+  syncNormalizedVideoPreview(video, false);
   video.playsInline = true;
   video.autoplay = true;
   video.muted = muted;
@@ -923,8 +1002,7 @@ async function refreshVideoInputDevices() {
 
 async function openCameraStream(deviceId = preferredVideoDeviceId) {
   ensureCameraAvailable();
-  stopStream(activeMediaStream);
-  activeMediaStream = null;
+  resetVideoRecordingSession();
   let lastError = null;
   for (const videoConstraints of buildVideoConstraintAttempts({ width: 720, height: 720 }, deviceId)) {
     try {
@@ -1524,12 +1602,7 @@ function showPhotoCameraError(error) {
 function closeRecorder() {
   clearRecordTimer();
   stopRecordPreview(false);
-  if (recorderMode === "recording" && activeRecorder?.state === "recording") {
-    activeRecorder.stop();
-  }
-  stopStream(activeMediaStream);
-  activeMediaStream = null;
-  recordScreen.classList.remove("has-live-preview");
+  resetVideoRecordingSession();
   recordScreen.classList.remove("is-visible");
   window.setTimeout(() => {
     recordScreen.hidden = true;
@@ -1539,7 +1612,6 @@ function closeRecorder() {
       openSavedPhotoProfileScreen();
     }
     setRecorderMode("idle");
-    detachVideoElement(recordPreviewVideo);
     resetRecordSurface();
     clearDraftVideoAsset();
   }, ANIMATION_MS);
@@ -1551,6 +1623,9 @@ async function startRecording() {
   resetRecordSurface();
   shouldDiscardCurrentRecording = false;
   try {
+    if (isIOSDevice()) {
+      await openCameraStream(preferredVideoDeviceId);
+    }
     const mimeType = await ensureRecorderReady();
     if (recordPreviewVideo.srcObject !== activeMediaStream) {
       prepareLiveVideoElement(recordPreviewVideo, true);
@@ -1580,8 +1655,7 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
-        needsIosRotationFix: isIPhoneSafari()
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
@@ -1624,14 +1698,10 @@ function deleteDraftRecording() {
   }
   stopRecordPreview(false);
   clearDraftVideoAsset();
-  detachVideoElement(recordPreviewVideo);
-  if (activeMediaStream) {
-    prepareLiveVideoElement(recordPreviewVideo, true);
-    recordPreviewVideo.srcObject = activeMediaStream;
-    recordPreviewVideo.play().catch(() => {});
-  }
+  resetVideoRecordingSession();
   resetRecordSurface();
   setRecorderMode("idle");
+  openCameraStream(preferredVideoDeviceId).catch(showRecordError);
 }
 
 function confirmRecording() {
@@ -2414,6 +2484,12 @@ document.querySelectorAll(".design-templates-track").forEach(populateTemplateTra
   designTemplatesViewport,
   ...photoTemplateScrollAreas.map(({ viewport }) => viewport)
 ].forEach(initializeTemplateViewport);
+[
+  recordPreviewVideo,
+  designVideoPreview,
+  templateVideoPreview,
+  previewVideoPlayer
+].forEach(initializeNormalizedVideoPreview);
 syncDesignStyle();
 centerTemplateCard(templateVideo, designTemplatesViewport);
 syncPreviewContent();

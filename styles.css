@@ -1193,6 +1193,7 @@ textarea {
 .media-circle-video,
 .record-preview-video,
 .preview-media-video,
+.normalized-video-canvas,
 .template-video-preview {
   position: absolute;
   inset: 0;
@@ -1205,8 +1206,22 @@ textarea {
 
 .media-circle-video,
 .preview-media-video,
+.normalized-video-canvas,
 .template-video-preview {
   border-radius: 50%;
+}
+
+.normalized-video-canvas {
+  display: none;
+  pointer-events: none;
+}
+
+.normalized-video-canvas.is-active {
+  display: block;
+}
+
+.is-normalized-preview-source {
+  opacity: 0;
 }
 
 .media-circle::before {
