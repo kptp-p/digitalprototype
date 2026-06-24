@@ -325,14 +325,17 @@ function drawNormalizedVideoFrame({
   sourceHeight,
   targetWidth,
   targetHeight,
-  rotationDirection = -1
+  rotationDegrees = -90
 }) {
   if (!context || !sourceWidth || !sourceHeight || !targetWidth || !targetHeight) return;
   context.clearRect(0, 0, targetWidth, targetHeight);
   context.save();
   context.translate(targetWidth / 2, targetHeight / 2);
-  context.rotate(rotationDirection * Math.PI / 2);
-  const scale = Math.max(targetWidth / sourceHeight, targetHeight / sourceWidth);
+  context.rotate(rotationDegrees * Math.PI / 180);
+  const usesQuarterTurn = Math.abs(rotationDegrees % 180) === 90;
+  const rotatedWidth = usesQuarterTurn ? sourceHeight : sourceWidth;
+  const rotatedHeight = usesQuarterTurn ? sourceWidth : sourceHeight;
+  const scale = Math.max(targetWidth / rotatedWidth, targetHeight / rotatedHeight);
   const drawWidth = sourceWidth * scale;
   const drawHeight = sourceHeight * scale;
   context.drawImage(source, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
@@ -1018,8 +1021,9 @@ function startRecordingCanvasPipeline(sourceVideo, canvas, sourceStream, fps = 3
   const sourceWidth = sourceVideo.videoWidth || Number(activeVideoCaptureSettings.width) || 0;
   const sourceHeight = sourceVideo.videoHeight || Number(activeVideoCaptureSettings.height) || 0;
   if (!sourceWidth || !sourceHeight) return null;
-  canvas.width = Math.max(1, sourceHeight);
-  canvas.height = Math.max(1, sourceWidth);
+  const sourceIsLandscape = sourceWidth > sourceHeight;
+  canvas.width = Math.max(1, sourceIsLandscape ? sourceHeight : sourceWidth);
+  canvas.height = Math.max(1, sourceIsLandscape ? sourceWidth : sourceHeight);
   const context = canvas.getContext("2d");
   if (!context) return null;
 
@@ -1030,7 +1034,8 @@ function startRecordingCanvasPipeline(sourceVideo, canvas, sourceStream, fps = 3
       sourceWidth,
       sourceHeight,
       targetWidth: canvas.width,
-      targetHeight: canvas.height
+      targetHeight: canvas.height,
+      rotationDegrees: 0
     });
     activeRecordingCanvasFrame = window.requestAnimationFrame(drawFrame);
   };
