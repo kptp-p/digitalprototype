@@ -128,6 +128,8 @@ const RECORD_RING_LENGTH = 867.08;
 const PREVIEW_LIMIT_MS = 60000;
 const PREVIEW_BUTTERFLY_MS = 2200;
 const TEMPLATE_HOLD_SCROLL_STEP = 8;
+const PHOTO_CAMERA_OPEN_LAYOUT_SRC = "layouts/%D0%A4%D0%BE%D1%82%D0%BE%20%D0%B8%20%D1%84%D0%BE%D1%82%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D0%B8/%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C%20%D1%84%D0%BE%D1%82%D0%BE/%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D0%BB%D0%B8%20%D0%BA%D0%B0%D0%BC%D0%B5%D1%80%D1%83.svg";
+const PHOTO_CAMERA_SHOT_LAYOUT_SRC = "layouts/%D0%A4%D0%BE%D1%82%D0%BE%20%D0%B8%20%D1%84%D0%BE%D1%82%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D0%B8/%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C%20%D1%84%D0%BE%D1%82%D0%BE/%D1%81%D1%84%D0%BE%D1%82%D0%BA%D0%B0%D0%BB%D0%B8.svg";
 const VIDEO_RECORDER_MIME_TYPES = [
   "video/webm;codecs=vp9",
   "video/webm;codecs=vp8",
@@ -1138,6 +1140,11 @@ function detachPhotoCameraPreview() {
   photoCameraPreview.srcObject = null;
 }
 
+function syncPhotoCameraLayoutAssets() {
+  photoCameraOpenState?.querySelector("img")?.setAttribute("src", PHOTO_CAMERA_OPEN_LAYOUT_SRC);
+  photoCameraShotState?.querySelector("img")?.setAttribute("src", PHOTO_CAMERA_SHOT_LAYOUT_SRC);
+}
+
 function resetPhotoCameraView() {
   photoCameraFrame?.classList.remove("is-shot");
   photoCameraOpenState.hidden = false;
@@ -1983,14 +1990,24 @@ function setDesignMediaMode(mode) {
 
 function showPhotoPicker() {
   hideDesignExit();
+  overlay.hidden = false;
+  overlay.classList.add("is-photo-picker");
   photoPickerSheet.hidden = false;
-  requestAnimationFrame(() => photoPickerSheet.classList.add("is-visible"));
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-visible");
+    photoPickerSheet.classList.add("is-visible");
+  });
 }
 
 function hidePhotoPicker() {
+  overlay.classList.remove("is-visible");
   photoPickerSheet.classList.remove("is-visible");
   window.setTimeout(() => {
     if (!photoPickerSheet.classList.contains("is-visible")) {
+      overlay.classList.remove("is-photo-picker");
+      if (!introSheet.classList.contains("is-visible")) {
+        overlay.hidden = true;
+      }
       photoPickerSheet.hidden = true;
     }
   }, ANIMATION_MS);
@@ -2135,7 +2152,13 @@ function openRecorderOrPreview() {
 
 document.querySelector("#openEcard").addEventListener("click", openSheet);
 document.querySelector("#later").addEventListener("click", closeSheet);
-overlay.addEventListener("click", closeSheet);
+overlay.addEventListener("click", () => {
+  if (photoPickerSheet.classList.contains("is-visible")) {
+    cancelPhotoPicker();
+    return;
+  }
+  closeSheet();
+});
 
 document.querySelector("#addEcard").addEventListener("click", () => {
   state.hasEcard = true;
@@ -2362,3 +2385,4 @@ centerTemplateCard(templateVideo, designTemplatesViewport);
 syncPreviewContent();
 
 render();
+syncPhotoCameraLayoutAssets();

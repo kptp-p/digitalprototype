@@ -595,6 +595,12 @@ button {
   transition: opacity 220ms ease;
 }
 
+.overlay.is-photo-picker {
+  position: fixed;
+  z-index: 28;
+  background: rgba(0, 0, 0, 0.24);
+}
+
 .overlay.is-visible {
   opacity: 1;
 }
@@ -1679,7 +1685,7 @@ textarea {
 .photo-picker-sheet {
   position: fixed;
   left: calc(50% + var(--phone-safe-left, 0px));
-  bottom: 250px;
+  bottom: 100px;
   z-index: 29;
   width: 355px;
   transform: translateX(-50%) translateY(24px);
@@ -3816,7 +3822,7 @@ textarea {
 
   .photo-picker-sheet {
     width: calc(var(--phone-width) - (var(--phone-gutter) * 2));
-    bottom: calc(var(--phone-height) * 250 / 812 + var(--safe-bottom));
+    bottom: calc(var(--phone-height) * 98 / 812 + var(--safe-bottom));
   }
 
   .photo-camera-frame {
