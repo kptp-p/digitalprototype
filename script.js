@@ -303,16 +303,9 @@ function isIPhoneSafari() {
 
 function syncPlaybackVideoOrientation(video, meta = {}) {
   if (!video) return;
-  const captureWidth = Number(meta.captureWidth) || 0;
-  const captureHeight = Number(meta.captureHeight) || 0;
-  const shouldCorrectRotation =
-    Boolean(meta.needsIosRotationFix)
-    || (
-      isIPhoneSafari()
-      && captureHeight > captureWidth
-      && video.videoWidth > video.videoHeight
-    );
+  const shouldCorrectRotation = Boolean(meta.needsIosRotationFix);
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
+  video.style.transform = shouldCorrectRotation ? "rotate(-90deg) scale(1.78)" : "";
 }
 
 function setVideoElementSource(video, url, muted = false, meta = {}) {
@@ -327,6 +320,7 @@ function setVideoElementSource(video, url, muted = false, meta = {}) {
     video.removeEventListener("loadedmetadata", video._orientationSyncHandler);
   }
   video.classList.remove("is-rotated-ios-video");
+  video.style.transform = "";
   if (url) {
     video._orientationSyncHandler = () => syncPlaybackVideoOrientation(video, meta);
     video.addEventListener("loadedmetadata", video._orientationSyncHandler, { once: true });
