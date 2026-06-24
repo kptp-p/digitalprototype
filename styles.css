@@ -3660,7 +3660,7 @@ textarea {
   }
 
   .preview-flip-trigger {
-    top: calc(var(--phone-height) * 534 / 812);
+    top: calc((var(--phone-height) * 29 / 812) + var(--phone-card-height) + (var(--phone-height) * 12 / 812));
     width: calc(var(--phone-width) * 112 / 375);
     height: calc(var(--phone-height) * 63 / 812);
   }
