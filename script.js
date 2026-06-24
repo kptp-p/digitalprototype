@@ -270,7 +270,8 @@ function createDraftAsset(kind, blob, meta = {}) {
     durationMs: meta.durationMs || 0,
     source: meta.source || "camera",
     captureWidth: meta.captureWidth || 0,
-    captureHeight: meta.captureHeight || 0
+    captureHeight: meta.captureHeight || 0,
+    needsIosRotationFix: Boolean(meta.needsIosRotationFix)
   };
 }
 
@@ -305,9 +306,12 @@ function syncPlaybackVideoOrientation(video, meta = {}) {
   const captureWidth = Number(meta.captureWidth) || 0;
   const captureHeight = Number(meta.captureHeight) || 0;
   const shouldCorrectRotation =
-    isIPhoneSafari()
-    && captureHeight > captureWidth
-    && video.videoWidth > video.videoHeight;
+    Boolean(meta.needsIosRotationFix)
+    || (
+      isIPhoneSafari()
+      && captureHeight > captureWidth
+      && video.videoWidth > video.videoHeight
+    );
   video.classList.toggle("is-rotated-ios-video", shouldCorrectRotation);
 }
 
@@ -1513,7 +1517,10 @@ async function startRecording() {
       currentDraftVideoAsset = createDraftAsset("video", blob, {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
-        captureHeight: Number(activeVideoCaptureSettings.height) || 0
+        captureHeight: Number(activeVideoCaptureSettings.height) || 0,
+        needsIosRotationFix:
+          isIPhoneSafari()
+          && Number(activeVideoCaptureSettings.height) > Number(activeVideoCaptureSettings.width)
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
