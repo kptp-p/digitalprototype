@@ -3910,6 +3910,4 @@ textarea {
     height: calc(var(--phone-height) * 71 / 812);
   }
 }
-.is-rotated-ios-video {
-  transform: rotate(90deg);
-}
+.is-rotated-ios-video {}
