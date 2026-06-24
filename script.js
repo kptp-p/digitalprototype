@@ -669,6 +669,7 @@ let preferredVideoDeviceId = null;
 let activeVideoCaptureSettings = {};
 let activeRecorder = null;
 let pendingRecordedChunks = [];
+let shouldDiscardCurrentRecording = false;
 let currentRecordStartTime = 0;
 let currentDraftVideoAsset = createEmptyMediaAsset("video");
 let activePhotoStream = null;
@@ -1511,6 +1512,7 @@ async function startRecording() {
   stopRecordPreview(false);
   clearDraftVideoAsset();
   resetRecordSurface();
+  shouldDiscardCurrentRecording = false;
   try {
     const mimeType = await ensureRecorderReady();
     if (recordPreviewVideo.srcObject !== activeMediaStream) {
@@ -1526,6 +1528,11 @@ async function startRecording() {
       }
     });
     activeRecorder.addEventListener("stop", () => {
+      if (shouldDiscardCurrentRecording) {
+        pendingRecordedChunks = [];
+        shouldDiscardCurrentRecording = false;
+        return;
+      }
       const blob = new Blob(pendingRecordedChunks, { type: mimeType });
       pendingRecordedChunks = [];
       if (!blob.size) {
@@ -1575,6 +1582,7 @@ function stopRecording() {
 
 function deleteDraftRecording() {
   if (recorderMode === "recording") {
+    shouldDiscardCurrentRecording = true;
     stopRecording();
   }
   stopRecordPreview(false);
