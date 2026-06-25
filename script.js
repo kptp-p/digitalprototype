@@ -1000,6 +1000,22 @@ function buildVideoConstraintAttempts(size, deviceId) {
   return attempts;
 }
 
+async function requestCameraStream({ audio = false, size = { width: 720, height: 720 }, deviceId = null } = {}) {
+  ensureCameraAvailable();
+  let lastError = null;
+  for (const videoConstraints of buildVideoConstraintAttempts(size, deviceId)) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio,
+        video: videoConstraints
+      });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("getUserMedia-unavailable");
+}
+
 function stopRecordingCanvasPipeline() {
   if (activeRecordingCanvasFrame) {
     window.cancelAnimationFrame(activeRecordingCanvasFrame);
@@ -1125,27 +1141,16 @@ async function refreshVideoInputDevices() {
 }
 
 async function openCameraStream(deviceId = preferredVideoDeviceId) {
-  ensureCameraAvailable();
   resetVideoRecordingSession();
-  let lastError = null;
-  for (const videoConstraints of buildVideoConstraintAttempts({ width: 720, height: 720 }, deviceId)) {
-    try {
-      activeMediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-        video: videoConstraints
-      });
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  if (!activeMediaStream) {
-    throw lastError || new Error("getUserMedia-unavailable");
-  }
+  activeMediaStream = await requestCameraStream({
+    audio: {
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true
+    },
+    size: { width: 720, height: 720 },
+    deviceId
+  });
   const [track] = activeMediaStream.getVideoTracks();
   const settings = track?.getSettings?.() || {};
   activeVideoCaptureSettings = settings;
@@ -1366,24 +1371,12 @@ function resetPhotoCameraView() {
 }
 
 async function openPhotoStream() {
-  ensureCameraAvailable();
   stopPhotoStream();
   activePhotoStream = null;
-  let lastError = null;
-  for (const videoConstraints of buildVideoConstraintAttempts({ width: 1080, height: 1080 })) {
-    try {
-      activePhotoStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: videoConstraints
-      });
-      break;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  if (!activePhotoStream) {
-    throw lastError || new Error("getUserMedia-unavailable");
-  }
+  activePhotoStream = await requestCameraStream({
+    audio: false,
+    size: { width: 1080, height: 1080 }
+  });
   prepareLiveVideoElement(photoCameraPreview, true);
   photoCameraPreview.srcObject = activePhotoStream;
   await photoCameraPreview.play().catch(() => {});
@@ -1416,11 +1409,6 @@ function showPhotoAssetFlow(source) {
 
 function pickPhotoFromGallery() {
   photoFileInput.removeAttribute("capture");
-  photoFileInput.click();
-}
-
-function pickPhotoFromDeviceCamera() {
-  photoFileInput.setAttribute("capture", "user");
   photoFileInput.click();
 }
 
@@ -1850,10 +1838,6 @@ async function openPhotoCamera() {
   hideDesignExit();
   draftPhotoSource = "camera";
   clearDraftPhotoAsset();
-  if (isMobileCameraDevice()) {
-    pickPhotoFromDeviceCamera();
-    return;
-  }
   resetPhotoCameraView();
   photoCameraScreen.hidden = false;
   requestAnimationFrame(() => photoCameraScreen.classList.add("is-visible"));
