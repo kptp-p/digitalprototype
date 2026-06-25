@@ -1412,6 +1412,11 @@ function pickPhotoFromGallery() {
   photoFileInput.click();
 }
 
+function pickPhotoFromDeviceCamera() {
+  photoFileInput.setAttribute("capture", "user");
+  photoFileInput.click();
+}
+
 function isValidPhotoFile(file) {
   return Boolean(file && file.type && file.type.startsWith("image/"));
 }
@@ -1838,6 +1843,10 @@ async function openPhotoCamera() {
   hideDesignExit();
   draftPhotoSource = "camera";
   clearDraftPhotoAsset();
+  if (isMobileCameraDevice()) {
+    pickPhotoFromDeviceCamera();
+    return;
+  }
   resetPhotoCameraView();
   photoCameraScreen.hidden = false;
   requestAnimationFrame(() => photoCameraScreen.classList.add("is-visible"));
