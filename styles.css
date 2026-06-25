@@ -1347,13 +1347,14 @@ textarea {
 
 .design-progress {
   position: absolute;
-  inset: 3px;
+  top: 50%;
+  left: 50%;
   z-index: 3;
-  width: auto;
-  height: auto;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
   display: none;
   pointer-events: none;
-  transform: rotate(-90deg);
+  transform: translate(-50%, -50%) rotate(-90deg);
   -webkit-transform-origin: 50% 50%;
   transform-origin: 50% 50%;
   transform-box: border-box;
@@ -2013,13 +2014,14 @@ textarea {
 
 .preview-progress {
   position: absolute;
-  inset: 3px;
+  top: 50%;
+  left: 50%;
   z-index: 3;
-  width: auto;
-  height: auto;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
   display: none;
   pointer-events: none;
-  transform: rotate(-90deg);
+  transform: translate(-50%, -50%) rotate(-90deg);
   -webkit-transform-origin: 50% 50%;
   transform-origin: 50% 50%;
   transform-box: border-box;
@@ -3507,7 +3509,8 @@ textarea {
 
   .design-progress,
   .preview-progress {
-    inset: calc(var(--phone-card-width) * 3 / 343);
+    width: calc(100% - (var(--phone-card-width) * 6 / 343));
+    height: calc(100% - (var(--phone-card-width) * 6 / 343));
   }
 
   .design-play,
