@@ -68,6 +68,13 @@ button {
   padding: var(--safe-top) 16px 0;
 }
 
+#cartScreen > .top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 1px 0 rgba(22, 19, 22, 0.06);
+}
+
 .nav {
   display: grid;
   grid-template-columns: 36px 1fr 36px;
