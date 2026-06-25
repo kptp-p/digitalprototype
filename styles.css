@@ -455,6 +455,7 @@ button {
 
 .ecard-banner span:first-child {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
@@ -466,11 +467,12 @@ button {
   font-size: 20px;
   line-height: 22px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .ecard-banner small {
   display: block;
-  width: 185px;
+  max-width: 185px;
   margin-top: 1px;
   font-size: 12px;
   line-height: 13px;
@@ -496,6 +498,7 @@ button {
 }
 
 .banner-art {
+  flex: 0 0 auto;
   width: 92px;
   height: 92px;
   align-self: center;
