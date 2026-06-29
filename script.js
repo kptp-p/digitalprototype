@@ -144,6 +144,12 @@ const VIDEO_RECORDER_MIME_TYPES = [
   "video/webm;codecs=vp8",
   "video/webm"
 ];
+const MOBILE_VIDEO_RECORDER_MIME_TYPES = [
+  "video/mp4;codecs=h264,aac",
+  "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+  "video/mp4",
+  ...VIDEO_RECORDER_MIME_TYPES
+];
 const TEMPLATE_STYLE_CARDS_LEFT = [
   { className: "template-next", label: "Готовый стиль next", styleId: "next" }
 ];
@@ -258,6 +264,11 @@ function formatPrice(value) {
 function getSupportedRecorderMimeType() {
   if (typeof MediaRecorder === "undefined") return "";
   return VIDEO_RECORDER_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function getSupportedMobileRecorderMimeType() {
+  if (typeof MediaRecorder === "undefined") return "";
+  return MOBILE_VIDEO_RECORDER_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
 
 function disposeAssetUrl(asset) {
@@ -1079,11 +1090,8 @@ function buildRecordingStream(sourceStream) {
     activeRecordingStream = sourceStream;
     return sourceStream;
   }
-  const canvas = document.createElement("canvas");
-  const normalizedStream = startRecordingCanvasPipeline(recordPreviewVideo, canvas, sourceStream);
-  activeRecordingCanvas = canvas;
-  activeRecordingStream = normalizedStream || sourceStream;
-  return activeRecordingStream;
+  activeRecordingStream = sourceStream;
+  return sourceStream;
 }
 
 function resetVideoRecordingSession() {
@@ -1129,6 +1137,73 @@ function getCameraErrorMessage(error) {
   return typeof error === "string" ? error : messageByCode[error?.name || error?.message] || "Не удалось открыть камеру";
 }
 
+function getRecorderErrorMessage(error) {
+  const messageByCode = {
+    "media-recorder-unavailable": "\u0417\u0430\u043f\u0438\u0441\u044c \u0432\u0438\u0434\u0435\u043e \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u0432 \u044d\u0442\u043e\u043c \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0435",
+    "recording-init-failed": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c \u0432\u0438\u0434\u0435\u043e",
+    "recording-save-failed": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c",
+    NotSupportedError: "\u0417\u0430\u043f\u0438\u0441\u044c \u0432\u0438\u0434\u0435\u043e \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u043d\u0430 \u044d\u0442\u043e\u043c \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0435",
+    InvalidModificationError: "\u0417\u0430\u043f\u0438\u0441\u044c \u0432\u0438\u0434\u0435\u043e \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u043d\u0430 \u044d\u0442\u043e\u043c \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u0435"
+  };
+  return typeof error === "string" ? error : messageByCode[error?.name || error?.message] || "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c \u0432\u0438\u0434\u0435\u043e";
+}
+
+function createRecorderInstance(stream, mimeType) {
+  if (!isMobileCameraDevice()) {
+    return {
+      recorder: new MediaRecorder(stream, { mimeType }),
+      mimeType
+    };
+  }
+  const attempts = [];
+  if (mimeType) {
+    attempts.push(() => ({
+      recorder: new MediaRecorder(stream, { mimeType }),
+      mimeType
+    }));
+  }
+  attempts.push(() => ({
+    recorder: new MediaRecorder(stream),
+    mimeType: ""
+  }));
+  let lastError = null;
+  for (const attempt of attempts) {
+    try {
+      return attempt();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("recording-init-failed");
+}
+
+function validateRecordedVideoBlob(blob) {
+  if (!blob?.size) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    const url = URL.createObjectURL(blob);
+    let settled = false;
+    const cleanup = (result) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      video.removeAttribute("src");
+      video.load();
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+    const timeout = window.setTimeout(() => cleanup(false), 1500);
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    video.addEventListener("loadedmetadata", () => {
+      cleanup(Boolean(video.videoWidth && video.videoHeight));
+    }, { once: true });
+    video.addEventListener("error", () => cleanup(false), { once: true });
+    video.src = url;
+  });
+}
+
 async function refreshVideoInputDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) {
     availableVideoDevices = [];
@@ -1169,7 +1244,7 @@ async function switchCamera() {
   try {
     await openCameraStream(nextDevice?.deviceId);
   } catch (error) {
-    showRecordError(error);
+    showRecorderCameraError(error);
   }
 }
 
@@ -1483,9 +1558,13 @@ function resetRecordSurface() {
 }
 
 async function ensureRecorderReady() {
-  const mimeType = getSupportedRecorderMimeType();
+  const mimeType = isMobileCameraDevice()
+    ? getSupportedMobileRecorderMimeType()
+    : getSupportedRecorderMimeType();
   if (!mimeType) {
-    throw new Error("media-recorder-unavailable");
+    if (!isMobileCameraDevice() || typeof MediaRecorder === "undefined") {
+      throw new Error("media-recorder-unavailable");
+    }
   }
   if (!activeMediaStream) {
     await openCameraStream();
@@ -1693,7 +1772,7 @@ async function openRecorder() {
   try {
     await openCameraStream();
   } catch (error) {
-    showRecordError(error);
+    showRecorderCameraError(error);
   }
 }
 
@@ -1703,6 +1782,12 @@ function openRecorderFromPhotoProfile() {
 }
 
 function showRecordError(error) {
+  recordError.textContent = getRecorderErrorMessage(error);
+  recordError.hidden = false;
+  flipCamera.disabled = true;
+}
+
+function showRecorderCameraError(error) {
   recordError.textContent = getCameraErrorMessage(error);
   recordError.hidden = false;
   flipCamera.disabled = true;
@@ -1747,8 +1832,9 @@ async function startRecording() {
     }
     await recordPreviewVideo.play().catch(() => {});
     const recordingStream = buildRecordingStream(activeMediaStream);
+    const { recorder: mediaRecorder, mimeType: resolvedMimeType } = createRecorderInstance(recordingStream, mimeType);
     pendingRecordedChunks = [];
-    activeRecorder = new MediaRecorder(recordingStream, { mimeType });
+    activeRecorder = mediaRecorder;
     activeRecorder.addEventListener("dataavailable", (event) => {
       if (event.data && event.data.size > 0) {
         pendingRecordedChunks.push(event.data);
@@ -1760,9 +1846,10 @@ async function startRecording() {
         shouldDiscardCurrentRecording = false;
         return;
       }
-      const blob = new Blob(pendingRecordedChunks, { type: mimeType });
+      const blob = new Blob(pendingRecordedChunks, { type: resolvedMimeType || activeRecorder.mimeType || pendingRecordedChunks[0]?.type || "" });
       pendingRecordedChunks = [];
-      if (!blob.size) {
+      const isBlobValid = await validateRecordedVideoBlob(blob);
+      if (!blob.size || (isMobileCameraDevice() && !isBlobValid)) {
         deleteDraftRecording();
         showRecordError("Не удалось сохранить запись");
         return;
@@ -1771,7 +1858,8 @@ async function startRecording() {
         durationMs: Math.max(0, Date.now() - currentRecordStartTime),
         captureWidth: Number(activeVideoCaptureSettings.width) || 0,
         captureHeight: Number(activeVideoCaptureSettings.height) || 0,
-        orientationNormalized: activeRecordingStream !== activeMediaStream
+        orientationNormalized: activeRecordingStream !== activeMediaStream,
+        mimeType: blob.type || resolvedMimeType || activeRecorder.mimeType || ""
       });
       hasDraftVideo = true;
       setVideoElementSource(recordPreviewVideo, currentDraftVideoAsset.url, false, currentDraftVideoAsset);
